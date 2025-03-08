@@ -112,28 +112,24 @@
                     openModal(videoPath);
                 });
                 
-                // Create the video thumbnail preview
+                // For mobile optimization, just use a video element but don't autoplay
                 const video = document.createElement('video');
                 video.className = 'thumbnail';
                 video.src = videoPath;
                 video.muted = true;
-                video.preload = 'metadata';
+                video.preload = 'metadata'; // Just load metadata for faster initial loading
                 video.loading = 'lazy'; // Enable lazy loading for better performance
+                video.setAttribute('playsinline', ''); // Better mobile compatibility
+                video.setAttribute('poster', 'assets/images/video-placeholder.jpg'); // Generic poster image
                 
-                // Add hover effect for video thumbnails
-                videoContainer.addEventListener('mouseenter', () => {
-                    if (window.innerWidth > 768) { // Only on desktop
-                        video.play();
-                    }
-                });
-                
-                videoContainer.addEventListener('mouseleave', () => {
-                    video.pause();
-                    video.currentTime = 0;
-                });
+                // Create play button overlay to indicate it's a video
+                const playButton = document.createElement('div');
+                playButton.className = 'play-button-overlay';
+                playButton.innerHTML = '▶';
                 
                 // Append to container
                 videoContainer.appendChild(video);
+                videoContainer.appendChild(playButton);
                 videosGallery.appendChild(videoContainer);
             }
             
