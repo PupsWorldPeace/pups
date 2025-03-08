@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSfolio - Images</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="images-page">
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-logo">
+            <a href="index.html" class="logo-button">PUPSfolio</a>
+        </div>
+        
+        <div class="nav-links">
+            <ul>
+                <li><a href="index.html" class="nav-button">Home</a></li>
+                <li><a href="images.html" class="nav-button active">Images</a></li>
+                <li><a href="videos.html" class="nav-button">Videos</a></li>
+                <li><a href="create.html" class="nav-button">Create</a></li>
+                <li><a href="build.html" class="nav-button">Build</a></li>
+            </ul>
+        </div>
+        
+        <!-- Hamburger Menu for Mobile -->
+        <div class="hamburger-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+    
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html" class="nav-button">Home</a></li>
+            <li><a href="images.html" class="nav-button">Images</a></li>
+            <li><a href="videos.html" class="nav-button">Videos</a></li>
+            <li><a href="create.html" class="nav-button">Create</a></li>
+            <li><a href="build.html" class="nav-button">Build</a></li>
+            <li><a href="contact.html" class="nav-button">Contact</a></li>
+        </ul>
+    </div>
+    
+    <!-- Images Gallery -->
+    <div class="gallery" id="images-gallery">
+        <!-- Loading message -->
+        <div id="loading-message" style="width: 100%; text-align: center; margin-top: 50px; font-size: 24px; color: white;">
+            Loading images...
+        </div>
+        <!-- Image items will be dynamically added with JS -->
+    </div>
+    
+    <!-- Modal for viewing images -->
+    <div class="modal" id="image-modal">
+        <div class="modal-content">
+            <img class="modal-media" id="modal-image" alt="Gallery Image">
+            <div class="button-container">
+                <button class="modal-download" id="download-image-webp">Download WEBP</button>
+                <button class="modal-download" id="download-image-png">Download PNG</button>
+            </div>
+            <div class="modal-close">&times;</div>
+            <div class="modal-nav modal-prev"><i class="fas fa-chevron-left"></i></div>
+            <div class="modal-nav modal-next"><i class="fas fa-chevron-right"></i></div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <a href="contact.html" class="contact-button">Contact</a>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/gallery.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imagesGallery = document.getElementById('images-gallery');
+            const loadingMessage = document.getElementById('loading-message');
+            
+            // Function to load images
+            function loadImages() {
+                console.log("Loading images from assets/images directory...");
+                
+                // Hide loading message
+                loadingMessage.style.display = 'none';
+                
+                // Clear gallery
+                imagesGallery.innerHTML = '';
+                
+                // Path to images directory
+                const imagesPath = 'assets/images/';
+                
+                // Try to fetch directory listing
+                fetch(imagesPath)
+                    .then(response => response.text())
+                    .then(html => {
+                        // Parse the directory listing HTML
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Find all links (which are files in the directory)
+                        const links = doc.querySelectorAll('a');
+                        
+                        // Filter for image files and create elements
+                        let imageCount = 0;
+                        links.forEach(link => {
+                            const href = link.getAttribute('href');
+                            if (href && isImageFile(href)) {
+                                const filePath = imagesPath + href;
+                                createImageThumbnail(filePath);
+                                imageCount++;
+                            }
+                        });
+                        
+                        if (imageCount === 0) {
+                            // Fallback to predefined list if no images were found
+                            fallbackImageLoading();
+                        }
+                    })
+                    .catch(error => {
+                        console.warn('Error loading directory listing:', error);
+                        fallbackImageLoading();
+                    });
+            }
+            
+            // Fallback image loading function
+            function fallbackImageLoading() {
+                console.log('Using fallback method for image loading');
+                
+                // Known image files
+                const imageFiles = [
+                    'image1.png', 'image2.png', 'image3.png',
+                    'image1.webp', 'image2.webp', 'image3.webp',
+                    // Add any known image files here
+                ];
+                
+                // Create thumbnails for each image
+                imageFiles.forEach(file => {
+                    createImageThumbnail('assets/images/' + file);
+                });
+            }
+            
+            // Create a thumbnail for an image
+            function createImageThumbnail(imagePath) {
+                // Create container for the image
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'gallery-item';
+                imageContainer.addEventListener('click', () => {
+                    showModal(imagePath);
+                });
+                
+                // Create the image element
+                const img = document.createElement('img');
+                img.src = imagePath;
+                img.alt = 'Gallery Image';
+                img.loading = 'lazy'; // Performance optimization for image loading
+                
+                // Handle errors (if image doesn't exist)
+                img.onerror = function() {
+                    console.error(`Error loading image: ${imagePath}`);
+                    imageContainer.remove();
+                };
+                
+                // Append to gallery
+                imageContainer.appendChild(img);
+                imagesGallery.appendChild(imageContainer);
+            }
+            
+            // Check if a filename has an image extension
+            function isImageFile(filename) {
+                return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename);
+            }
+            
+            // Function to open the modal with the selected image
+            function showModal(imagePath) {
+                const modal = document.getElementById('image-modal');
+                const modalImage = document.getElementById('modal-image');
+                const downloadWebpBtn = document.getElementById('download-image-webp');
+                const downloadPngBtn = document.getElementById('download-image-png');
+                const closeBtn = document.querySelector('.modal-close');
+                const prevBtn = document.querySelector('.modal-prev');
+                const nextBtn = document.querySelector('.modal-next');
+                
+                // Store current image index and all gallery images for navigation
+                const allGalleryItems = document.querySelectorAll('.gallery-item img');
+                const allImagePaths = Array.from(allGalleryItems).map(img => img.src);
+                const currentIndex = allImagePaths.indexOf(imagePath);
+                
+                // Update image source
+                modalImage.src = imagePath;
+                
+                // Set up download buttons
+                const filename = imagePath.split('/').pop();
+                let baseName = filename.substring(0, filename.lastIndexOf('.'));
+                
+                if (!baseName) baseName = filename; // Fallback if no extension
+                
+                // Handle download for WebP (preferred format)
+                downloadWebpBtn.onclick = function() {
+                    downloadImage(imagePath, baseName + '.webp');
+                };
+                
+                // Handle download for PNG (alternative format)
+                downloadPngBtn.onclick = function() {
+                    // If original is not PNG, we'll still use the same image but with .png extension
+                    downloadImage(imagePath, baseName + '.png');
+                };
+                
+                // Show modal
+                modal.style.display = 'flex';
+                
+                // Navigation functions
+                function showPrevImage() {
+                    if (allImagePaths.length <= 1) return;
+                    
+                    let prevIndex = currentIndex - 1;
+                    if (prevIndex < 0) prevIndex = allImagePaths.length - 1;
+                    
+                    // Close current modal and open new one
+                    modal.style.display = 'none';
+                    showModal(allImagePaths[prevIndex]);
+                }
+                
+                function showNextImage() {
+                    if (allImagePaths.length <= 1) return;
+                    
+                    let nextIndex = currentIndex + 1;
+                    if (nextIndex >= allImagePaths.length) nextIndex = 0;
+                    
+                    // Close current modal and open new one
+                    modal.style.display = 'none';
+                    showModal(allImagePaths[nextIndex]);
+                }
+                
+                // Add click events for navigation
+                prevBtn.onclick = showPrevImage;
+                nextBtn.onclick = showNextImage;
+                
+                // Close button
+                closeBtn.onclick = function() {
+                    modal.style.display = 'none';
+                };
+                
+                // Close when clicking outside
+                window.onclick = function(event) {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+                
+                // Keyboard navigation
+                document.onkeydown = function(event) {
+                    if (modal.style.display === 'flex') {
+                        if (event.key === 'Escape') {
+                            closeBtn.click();
+                        } else if (event.key === 'ArrowLeft') {
+                            showPrevImage();
+                        } else if (event.key === 'ArrowRight') {
+                            showNextImage();
+                        }
+                    }
+                };
+            }
+            
+            // Helper function to download the image
+            function downloadImage(url, filename) {
+                // Create a hidden anchor element
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                
+                // Add to document, trigger click, then remove
+                document.body.appendChild(a);
+                a.click();
+                
+                // Small delay before removing the element
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                }, 100);
+            }
+            
+            // Load images on page load
+            loadImages();
+        });
+    </script>
+    <script src="js/image-preloader.js"></script>
+    <script src="js/performance-boost.js"></script>
+    <script src="js/stickers-rain.js"></script>
+    <script src="js/mobile-menu.js"></script>
+</body>
+</html>

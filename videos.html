@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSfolio - Videos</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="videos-page">
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-logo">
+            <a href="index.html" class="logo-button">PUPSfolio</a>
+        </div>
+        
+        <div class="nav-links">
+            <ul>
+                <li><a href="index.html" class="nav-button">Home</a></li>
+                <li><a href="images.html" class="nav-button">Images</a></li>
+                <li><a href="videos.html" class="nav-button active">Videos</a></li>
+                <li><a href="create.html" class="nav-button">Create</a></li>
+                <li><a href="build.html" class="nav-button">Build</a></li>
+            </ul>
+        </div>
+        
+        <!-- Hamburger Menu for Mobile -->
+        <div class="hamburger-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+    
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html" class="nav-button">Home</a></li>
+            <li><a href="images.html" class="nav-button">Images</a></li>
+            <li><a href="videos.html" class="nav-button">Videos</a></li>
+            <li><a href="create.html" class="nav-button">Create</a></li>
+            <li><a href="build.html" class="nav-button">Build</a></li>
+            <li><a href="contact.html" class="nav-button">Contact</a></li>
+        </ul>
+    </div>
+    
+    <!-- Videos Gallery -->
+    <div class="gallery" id="videos-gallery">
+        <!-- Loading message -->
+        <div id="loading-message" style="width: 100%; text-align: center; margin-top: 50px; font-size: 24px; color: white;">
+            Loading videos...
+        </div>
+        <!-- Video items will be dynamically added with JS -->
+    </div>
+    
+    <!-- Modal for viewing videos -->
+    <div class="modal" id="video-modal">
+        <div class="modal-content">
+            <video class="modal-media" id="modal-video" controls autoplay></video>
+            <button class="modal-download" id="download-video-mp4">Download MP4</button>
+            <div class="modal-close">&times;</div>
+            <div class="modal-nav modal-prev"><i class="fas fa-chevron-left"></i></div>
+            <div class="modal-nav modal-next"><i class="fas fa-chevron-right"></i></div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <a href="contact.html" class="contact-button">Contact</a>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const videosGallery = document.getElementById('videos-gallery');
+            const loadingMessage = document.getElementById('loading-message');
+            
+            // Function to load videos directly with static thumbnails
+            function loadVideos() {
+                console.log("Loading videos from assets/videos directory...");
+                
+                // Hide loading message
+                loadingMessage.style.display = 'none';
+                
+                // Path to videos directory
+                const videosPath = 'assets/videos/';
+                
+                // List of known videos
+                const videoFiles = [
+                    'corn.mp4',
+                    'couch.mp4',
+                    'couch2.mp4',
+                    'trump.mp4',
+                    'trump2.mp4',
+                    'trump3.mp4',
+                    'trump4.mp4',
+                    'trump5.mp4'
+                ];
+                
+                // Clear gallery
+                videosGallery.innerHTML = '';
+                
+                // Create thumbnails for each video
+                videoFiles.forEach((fileName, index) => {
+                    const filePath = videosPath + fileName;
+                    createVideoThumbnail(filePath);
+                });
+            }
+            
+            function createVideoThumbnail(videoPath) {
+                // Create the container div
+                const videoContainer = document.createElement('div');
+                videoContainer.className = 'gallery-item';
+                videoContainer.addEventListener('click', () => {
+                    openModal(videoPath);
+                });
+                
+                // Create the video thumbnail preview
+                const video = document.createElement('video');
+                video.className = 'thumbnail';
+                video.src = videoPath;
+                video.muted = true;
+                video.preload = 'metadata';
+                video.loading = 'lazy'; // Enable lazy loading for better performance
+                
+                // Add hover effect for video thumbnails
+                videoContainer.addEventListener('mouseenter', () => {
+                    if (window.innerWidth > 768) { // Only on desktop
+                        video.play();
+                    }
+                });
+                
+                videoContainer.addEventListener('mouseleave', () => {
+                    video.pause();
+                    video.currentTime = 0;
+                });
+                
+                // Append to container
+                videoContainer.appendChild(video);
+                videosGallery.appendChild(videoContainer);
+            }
+            
+            // Function to open the modal with the selected video
+            function openModal(file) {
+                const modal = document.getElementById('video-modal');
+                const modalVideo = document.getElementById('modal-video');
+                const downloadBtn = document.getElementById('download-video-mp4');
+                const closeBtn = document.querySelector('.modal-close');
+                const prevBtn = document.querySelector('.modal-prev');
+                const nextBtn = document.querySelector('.modal-next');
+                
+                // Store current video index and all videos for navigation
+                const allGalleryItems = document.querySelectorAll('.gallery-item .thumbnail');
+                const allVideoSources = Array.from(allGalleryItems).map(container => {
+                    const video = container.querySelector('video');
+                    return video ? video.src : null;
+                }).filter(src => src !== null);
+                
+                const currentIndex = allVideoSources.indexOf(file);
+                
+                // Update modal video
+                modalVideo.src = file;
+                modalVideo.load(); // Reload the video element
+                
+                // Enable video controls in modal
+                modalVideo.controls = true;
+                
+                // Setup download button
+                downloadBtn.onclick = function() {
+                    const link = document.createElement('a');
+                    link.href = file;
+                    link.download = file.split('/').pop();
+                    link.target = '_blank';
+                    link.click();
+                };
+                
+                modal.style.display = 'flex';
+                
+                // Navigation functions
+                function showPrevVideo() {
+                    if (allVideoSources.length <= 1) return;
+                    
+                    let prevIndex = currentIndex - 1;
+                    if (prevIndex < 0) prevIndex = allVideoSources.length - 1;
+                    
+                    // Close current modal and open new one
+                    modalVideo.pause();
+                    modal.style.display = 'none';
+                    openModal(allVideoSources[prevIndex]);
+                }
+                
+                function showNextVideo() {
+                    if (allVideoSources.length <= 1) return;
+                    
+                    let nextIndex = currentIndex + 1;
+                    if (nextIndex >= allVideoSources.length) nextIndex = 0;
+                    
+                    // Close current modal and open new one
+                    modalVideo.pause();
+                    modal.style.display = 'none';
+                    openModal(allVideoSources[nextIndex]);
+                }
+                
+                // Add click events for navigation
+                prevBtn.onclick = showPrevVideo;
+                nextBtn.onclick = showNextVideo;
+                
+                // Close button
+                closeBtn.onclick = function() {
+                    modalVideo.pause();
+                    modal.style.display = 'none';
+                };
+                
+                // Close modal when clicking outside of modal content
+                window.onclick = function(event) {
+                    if (event.target === modal) {
+                        modalVideo.pause();
+                        modal.style.display = 'none';
+                    }
+                };
+                
+                // Keyboard navigation
+                document.onkeydown = function(event) {
+                    if (modal.style.display === 'flex') {
+                        if (event.key === 'Escape') {
+                            closeBtn.click();
+                        } else if (event.key === 'ArrowLeft') {
+                            showPrevVideo();
+                        } else if (event.key === 'ArrowRight') {
+                            showNextVideo();
+                        }
+                    }
+                };
+            }
+            
+            // Load videos on page load
+            loadVideos();
+        });
+    </script>
+    <script src="js/image-preloader.js"></script>
+    <script src="js/performance-boost.js"></script>
+    <script src="js/stickers-rain.js"></script>
+    <script src="js/mobile-menu.js"></script>
+</body>
+</html>

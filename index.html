@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSfolio - Creative Portfolio</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Additional styles for the infinite scrolling grid */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Hide scrollbar but allow CSS animation scrolling */
+        }
+        
+        /* Hide scrollbar but allow scrolling */
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+        
+        html {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        /* Add MS Paint doodle elements back */
+        .doodle-sun {
+            position: fixed;
+            top: 140px;
+            right: 30px;
+            width: 100px;
+            height: 100px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            border: 4px solid var(--border-color);
+            box-shadow: var(--ms-shadow);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <!-- MS Paint Doodle Elements -->
+    <div class="doodle-sun"></div>
+    
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-logo">
+            <a href="index.html" class="logo-button">PUPSfolio</a>
+        </div>
+        
+        <div class="nav-links">
+            <ul>
+                <li><a href="index.html" class="nav-button active">Home</a></li>
+                <li><a href="images.html" class="nav-button">Images</a></li>
+                <li><a href="videos.html" class="nav-button">Videos</a></li>
+                <li><a href="create.html" class="nav-button">Create</a></li>
+                <li><a href="build.html" class="nav-button">Build</a></li>
+            </ul>
+        </div>
+        
+        <!-- Hamburger Menu for Mobile -->
+        <div class="hamburger-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+    
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html" class="nav-button active">Home</a></li>
+            <li><a href="images.html" class="nav-button">Images</a></li>
+            <li><a href="videos.html" class="nav-button">Videos</a></li>
+            <li><a href="create.html" class="nav-button">Create</a></li>
+            <li><a href="build.html" class="nav-button">Build</a></li>
+            <li><a href="contact.html" class="nav-button">Contact</a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content: True Infinite Scrolling Grid -->
+    <div class="image-grid-container">
+        <!-- Grid items are dynamically added with JavaScript -->
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <a href="contact.html" class="contact-button">Contact</a>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/image-preloader.js"></script>
+    <script src="js/performance-boost.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/stickers-rain.js"></script>
+    <script src="js/mobile-menu.js"></script>
+</body>
+</html>
