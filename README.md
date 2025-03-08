@@ -1,23 +1,31 @@
-# Creative Portfolio Website
+# PUPSfolio - Creative Portfolio Website
 
-A beautiful and interactive multimedia showcase website for displaying photos, videos, and app demos with downloadable content.
+A beautiful and performance-optimized multimedia showcase website for displaying photos and videos with a smooth, responsive design.
 
 ## Features
 
 - **Beautiful Homepage**: Dynamic image grid with randomly cycling images
-- **Photo Gallery**: Filter photos by category, lightbox previews, and download functionality
+- **Photo Gallery**: Smooth image browsing with lightbox previews and download functionality
 - **Video Gallery**: Organized video collection with playback and download options
-- **App Showcase**: Feature your app demos with technology details and video explanations
-- **Responsive Design**: Looks great on all devices from mobile to desktop
-- **Modern UI**: Clean, animated interface with smooth transitions
+- **Performance Optimized**: Lazy loading, hardware acceleration, and resource hints for faster loading
+- **Mobile First Design**: Looks great on all devices with special optimizations for mobile
+- **Modern UI**: Clean, animated interface with smooth transitions and stickers rain effect
+
+## Performance Optimizations
+
+- **Lazy Loading**: Images and videos load only when they enter the viewport
+- **Hardware Acceleration**: Smooth animations and scrolling using CSS will-change and transform properties
+- **Device Detection**: Adaptive experiences based on device capabilities
+- **Image Preloading**: Strategic preloading of critical images for a smoother experience
+- **Resource Hints**: Faster loading of external resources like fonts
+- **Frame Rate Throttling**: Better performance on low-power devices
 
 ## How to Use
 
 ### Adding Your Content
 
-1. **Photos**: Place your images in the `assets/images` folder and update the `photos` array in `js/gallery.js`
-2. **Videos**: Add your videos to `assets/videos` and update the `videos` array in `js/videos.js`
-3. **App Demos**: Place app demo videos in `assets/apps` and update the `apps` array in `js/apps.js`
+1. **Photos**: Place your images in the `assets/images` folder
+2. **Videos**: Add your videos to `assets/videos` folder
 
 ### Running the Site
 
@@ -45,19 +53,21 @@ Or simply open the index.html file in your browser.
 site/
 ├── assets/
 │   ├── images/   # For all your photos
-│   ├── videos/   # For your video content
-│   └── apps/     # For app demo videos
+│   └── videos/   # For your video content
 ├── css/
 │   └── styles.css
 ├── js/
-│   ├── main.js
-│   ├── gallery.js
-│   ├── videos.js
-│   └── apps.js
-├── index.html    # Homepage
-├── images.html   # Photo gallery page
-├── videos.html   # Video collection page
-└── apps.html     # App showcase page
+│   ├── image-preloader.js   # Image preloading system
+│   ├── main.js              # Core site functionality
+│   ├── mobile-menu.js       # Mobile navigation handling
+│   ├── performance-boost.js # Performance optimizations
+│   └── stickers-rain.js     # Interactive stickers animation
+├── stickers/                # Sticker images for animation
+├── index.html               # Homepage
+├── images.html              # Image gallery
+└── videos.html              # Video gallery
 ```
 
-Enjoy your new portfolio site!
+## Credits
+
+A project by PUPSWorldPeace.
