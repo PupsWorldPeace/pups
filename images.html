@@ -127,7 +127,7 @@
             function fallbackImageLoading() {
                 console.log('Using fallback method for image loading');
                 
-                // Known image files - these are the actual images in your repository
+                // Known image files - expanded list with more actual images from your repository
                 const imageFiles = [
                     'by_charlie69746042_post_03ec3b28_4350_4e19_acbe_4f495a269128.webp',
                     'by_charlie69746042_post_06bcd730_aa10_4ab7_9e3a_77cd5d405512.webp',
@@ -142,6 +142,32 @@
                     'by_charlie69746042_post_40d5d9fe_d8ab_4329_aa10_0440cb76d17a.webp',
                     'by_charlie69746042_post_4390b0be_081a_4d88_a3b3_f7053857d40d.webp',
                     'by_charlie69746042_post_46b7118c_3df6_4385_a129_b6da0b8f8f7c.webp',
+                    'by_charlie69746042_post_4995de69_a6c9_4ed3_9051_010b20081239.webp',
+                    'by_charlie69746042_post_4a42a891_a0e3_4b77_adc9_56a2270cc038.webp',
+                    'by_charlie69746042_post_4cf986bb_5ccd_4987_b1ad_3e795b5b0fba.webp',
+                    'by_charlie69746042_post_55798b75_c16b_4771_a6d1_00e74edb8548.webp',
+                    'by_charlie69746042_post_5c33982e_149f_4ead_9549_841333a253ed.webp',
+                    'by_charlie69746042_post_68b2a313_013c_4a6f_b57c_657ad862c0e9.webp',
+                    'by_charlie69746042_post_6c28ba86_f8c5_4f69_a0eb_41f7a9a991b7.webp',
+                    'by_charlie69746042_post_7af26127_670e_42ad_b157_70884def1eb9.webp',
+                    'by_charlie69746042_post_7e6b5293_0862_4db7_a8c9_ed3c8385cd31.webp',
+                    'by_charlie69746042_post_82c85f1f_c50c_4815_adf5_73b8f499801f.webp',
+                    'by_charlie69746042_post_8337a732_1ea0_4037_be54_edd579700c45.webp',
+                    'by_charlie69746042_post_862e500d_9862_4bc0_96f0_f1877d50da17.webp',
+                    'by_charlie69746042_post_8d219f91_b558_49b9_b217_33e7f68ff073.webp',
+                    'by_charlie69746042_post_9de2bc05_f5c8_4aa5_92f0_7da2b6d71cb3.webp',
+                    'by_charlie69746042_post_a43c3a03_3b72_4970_bd56_b24ceb4f205a.webp',
+                    'by_charlie69746042_post_b3cf45ab_dca1_414a_aad9_145ba264d9de.webp',
+                    'by_charlie69746042_post_b47cf41e_256e_4216_93ee_4634cdc876a7.webp',
+                    'by_charlie69746042_post_ba27d90b_06c5_4d97_af07_4572074d7f09.webp',
+                    'by_charlie69746042_post_c2bf1afc_93c8_44ec_a7ad_b5f4476c5c97.webp',
+                    'by_charlie69746042_post_d0f1ae56_a411_47cb_bdf5_96e0d1158e67.webp',
+                    'by_charlie69746042_post_e0f3475d_49c8_471f_b4f1_c0bc5cd32aa7.webp',
+                    'by_charlie69746042_post_e18c2517_1184_413c_a496_ba08653310f5.webp',
+                    'by_charlie69746042_post_e42c2e03_655f_4672_b9db_3600458d4fe8.webp',
+                    'by_charlie69746042_post_e464775a_28aa_450e_9c64_8281168fd156.webp',
+                    'by_charlie69746042_post_e776c4fa_2722_47aa_8f0b_894f39059c64.webp',
+                    'by_charlie69746042_post_fd29606c_d982_400e_83dd_de754d4758d7.webp',
                     'by_lordworldpeace_post_00da90fa_4116_4ac6_bbd5_d18b0b0d1414.webp',
                     'by_lordworldpeace_post_074fdb15_29a5_4260_a3e2_35aaa5683e0e.webp',
                     'by_lordworldpeace_post_19be5b12_4648_4f10_b0f8_ea35436a6eb2.webp',
@@ -151,10 +177,27 @@
                     'by_lordworldpeace_post_2abfdd84_c97c_4484_bd8b_ad8a97ee91b5.webp'
                 ];
                 
-                // Create thumbnails for each image
-                imageFiles.forEach(file => {
-                    createImageThumbnail('assets/images/' + file);
-                });
+                // Create thumbnails for each image with staggered loading for better performance
+                let loadedCount = 0;
+                
+                function loadNextBatch(startIndex, batchSize) {
+                    const endIndex = Math.min(startIndex + batchSize, imageFiles.length);
+                    
+                    for (let i = startIndex; i < endIndex; i++) {
+                        createImageThumbnail('assets/images/' + imageFiles[i]);
+                        loadedCount++;
+                    }
+                    
+                    // If there are more images to load, schedule the next batch
+                    if (endIndex < imageFiles.length) {
+                        setTimeout(() => {
+                            loadNextBatch(endIndex, batchSize);
+                        }, 100); // Small delay between batches for smoother loading
+                    }
+                }
+                
+                // Start loading images in batches of 10
+                loadNextBatch(0, 10);
 
                 // Show a message if the gallery is still empty
                 if (imagesGallery.children.length === 0) {
