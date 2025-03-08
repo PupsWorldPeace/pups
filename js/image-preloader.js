@@ -6,19 +6,19 @@
 (function() {
     // List of sticker paths to preload
     const stickerPaths = [
-        'stickers/sticker1.png',
-        'stickers/sticker2.png',
-        'stickers/sticker3.png',
-        'stickers/sticker4.png',
-        'stickers/sticker5.png',
-        'stickers/sticker6.png',
-        'stickers/sticker7.png',
-        'stickers/sticker8.png',
-        'stickers/sticker9.png',
-        'stickers/sticker10.png',
-        'stickers/sticker11.png',
-        'stickers/sticker12.png',
-        'stickers/sticker13.png'
+        'sticker1.png',
+        'sticker2.png',
+        'sticker3.png',
+        'sticker4.png',
+        'sticker5.png',
+        'sticker6.png',
+        'sticker7.png',
+        'sticker8.png',
+        'sticker9.png',
+        'sticker10.png',
+        'sticker11.png',
+        'sticker12.png',
+        'sticker13.png'
     ];
     
     // Device detection to determine preload strategy
@@ -37,7 +37,7 @@
         
         // Fill queue with stickers to preload
         stickersToLoad.forEach(path => {
-            loadQueue.push(path);
+            loadQueue.push(`stickers/${path}`);
         });
         
         // Process the queue with staggered timing for smoother loading

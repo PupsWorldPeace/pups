@@ -14,19 +14,19 @@ document.addEventListener('DOMContentLoaded', function() {
         rotationSpeed: 0.5,                  // Rotation speed (degrees per frame)
         stickerCache: {},                    // For preloaded images
         stickerPaths: [                      // Paths to sticker images
-            '/stickers/0.png',
-            '/stickers/1.png', 
-            '/stickers/2.png',
-            '/stickers/3.png',
-            '/stickers/4.png',
-            '/stickers/5.png',
-            '/stickers/6.png',
-            '/stickers/7.png',
-            '/stickers/8.png',
-            '/stickers/9.png',
-            '/stickers/11.png',
-            '/stickers/glasses.png',
-            '/stickers/hat.png'
+            'stickers/0.png',
+            'stickers/1.png', 
+            'stickers/2.png',
+            'stickers/3.png',
+            'stickers/4.png',
+            'stickers/5.png',
+            'stickers/6.png',
+            'stickers/7.png',
+            'stickers/8.png',
+            'stickers/9.png',
+            'stickers/11.png',
+            'stickers/glasses.png',
+            'stickers/hat.png'
         ]
     };
     

@@ -127,17 +127,42 @@
             function fallbackImageLoading() {
                 console.log('Using fallback method for image loading');
                 
-                // Known image files
+                // Known image files - these are the actual images in your repository
                 const imageFiles = [
-                    'image1.png', 'image2.png', 'image3.png',
-                    'image1.webp', 'image2.webp', 'image3.webp',
-                    // Add any known image files here
+                    'by_charlie69746042_post_03ec3b28_4350_4e19_acbe_4f495a269128.webp',
+                    'by_charlie69746042_post_06bcd730_aa10_4ab7_9e3a_77cd5d405512.webp',
+                    'by_charlie69746042_post_0d55ff7d_03ca_4d55_8466_b4977b5ce8c1.webp',
+                    'by_charlie69746042_post_10a80810_55ee_4216_b849_8f7519974540.webp',
+                    'by_charlie69746042_post_16727ba6_c770_4008_9725_5add4209c102.webp',
+                    'by_charlie69746042_post_171387b6_3ca0_416d_9f9e_81c137fae53e.webp',
+                    'by_charlie69746042_post_23f3887b_08ba_486d_a838_99586e632e55.webp',
+                    'by_charlie69746042_post_276427ed_48cc_46a4_bde6_3d1132250228.webp',
+                    'by_charlie69746042_post_297f60dc_2129_4046_8ba2_82cb6ce4574e.webp',
+                    'by_charlie69746042_post_2fec18ef_f196_49d6_9f09_02e0344f90fb.webp',
+                    'by_charlie69746042_post_40d5d9fe_d8ab_4329_aa10_0440cb76d17a.webp',
+                    'by_charlie69746042_post_4390b0be_081a_4d88_a3b3_f7053857d40d.webp',
+                    'by_charlie69746042_post_46b7118c_3df6_4385_a129_b6da0b8f8f7c.webp',
+                    'by_lordworldpeace_post_00da90fa_4116_4ac6_bbd5_d18b0b0d1414.webp',
+                    'by_lordworldpeace_post_074fdb15_29a5_4260_a3e2_35aaa5683e0e.webp',
+                    'by_lordworldpeace_post_19be5b12_4648_4f10_b0f8_ea35436a6eb2.webp',
+                    'by_lordworldpeace_post_1b5a2529_6691_4147_9c30_65c3ef810bdd.webp',
+                    'by_lordworldpeace_post_214e7c90_ad36_470b_b24e_07cee5dbfa30.webp',
+                    'by_lordworldpeace_post_26f1c99c_f6f6_4856_a4af_0e04d13135e6.webp',
+                    'by_lordworldpeace_post_2abfdd84_c97c_4484_bd8b_ad8a97ee91b5.webp'
                 ];
                 
                 // Create thumbnails for each image
                 imageFiles.forEach(file => {
                     createImageThumbnail('assets/images/' + file);
                 });
+
+                // Show a message if the gallery is still empty
+                if (imagesGallery.children.length === 0) {
+                    const message = document.createElement('p');
+                    message.className = 'gallery-message';
+                    message.textContent = 'No images found. Please add images to the assets/images directory.';
+                    imagesGallery.appendChild(message);
+                }
             }
             
             // Create a thumbnail for an image
