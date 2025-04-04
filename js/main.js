@@ -6,38 +6,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Home page image grid (if on index page)
     if (imageGridContainer) {
-        // Image files
-        const imageFiles = [
-            'assets/images/by_charlie69746042_post_03ec3b28_4350_4e19_acbe_4f495a269128.webp',
-            'assets/images/by_lordworldpeace_post_00da90fa_4116_4ac6_bbd5_d18b0b0d1414.webp',
-            'assets/images/by_memedeckapp_post_023af0f9_bf65_4e52_8d9e_4eb2c898eef1.webp',
-            'assets/images/by_charlie69746042_post_06bcd730_aa10_4ab7_9e3a_77cd5d405512.webp',
-            'assets/images/by_lordworldpeace_post_074fdb15_29a5_4260_a3e2_35aaa5683e0e.webp',
-            'assets/images/by_memedeckapp_post_084e5fb9_0f76_4c85_a0d3_f9dfc29b5aa6.webp',
-            'assets/images/by_charlie69746042_post_0d55ff7d_03ca_4d55_8466_b4977b5ce8c1.webp',
-            'assets/images/by_lordworldpeace_post_19be5b12_4648_4f10_b0f8_ea35436a6eb2.webp',
-            'assets/images/by_memedeckapp_post_091735f2_42b1_4f4f_ad51_950a694d9b4f.webp'
-        ];
         
-        // Video files
-        const videoFiles = [
-            'assets/videos/corn.mp4',
-            'assets/videos/couch.mp4',
-            'assets/videos/trump.mp4'
-        ];
+        let allMedia = []; // To store media data from JSON
         
-        // Combine all media
-        const allMedia = [];
-        
-        // Add images
-        imageFiles.forEach(img => {
-            allMedia.push({type: 'image', src: img});
-        });
-        
-        // Add videos
-        videoFiles.forEach(vid => {
-            allMedia.push({type: 'video', src: vid});
-        });
+        // Fetch media data from JSON manifest
+        async function loadMediaData() {
+            try {
+                const response = await fetch('media-manifest.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                allMedia = await response.json();
+                // Once data is loaded, create the grid
+                createGrid(); 
+            } catch (error) {
+                console.error("Could not load media manifest:", error);
+                imageGridContainer.innerHTML = '<p style="color: white; text-align: center; padding: 20px;">Error loading media gallery.</p>';
+            }
+        }
         
         // Shuffle array for random distribution
         function shuffleArray(array) {
@@ -48,8 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return array;
         }
         
-        const shuffledMedia = shuffleArray([...allMedia]);
-        
         // Create grid items 
         function createGridItem(mediaItem) {
             const gridItem = document.createElement('div');
@@ -58,17 +42,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mediaItem.type === 'image') {
                 const img = document.createElement('img');
                 img.src = mediaItem.src;
-                img.alt = 'Creative Image';
+                // Use title for alt text, provide default if missing
+                img.alt = mediaItem.title || 'Creative Image'; 
                 img.loading = 'lazy';
                 gridItem.appendChild(img);
-            } else {
+            } else if (mediaItem.type === 'video') { // Check type explicitly
                 const video = document.createElement('video');
                 video.src = mediaItem.src;
                 video.muted = true;
                 video.autoplay = true;
                 video.loop = true;
-                video.playsinline = true;
-                video.controls = false;
+                video.playsInline = true; // Important for iOS inline playback
+                video.controls = false; // Hide default controls
                 gridItem.appendChild(video);
             }
             
@@ -77,6 +62,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create the grid with true infinite scroll
         function createGrid() {
+            // Ensure media data is loaded before creating grid
+            if (allMedia.length === 0) {
+                console.log("Media data not loaded yet, skipping grid creation.");
+                return; 
+            }
+
             // Clear the container
             imageGridContainer.innerHTML = '';
             
@@ -97,16 +88,20 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create a large enough pattern to fill more than the screen
             // This ensures there's no empty space during scrolling
             const viewportHeight = window.innerHeight;
-            const itemsPerColumn = Math.ceil((viewportHeight * 1.5) / (itemWidth + gap));
-            const totalItemsPerSection = columns * itemsPerColumn;
+            const itemsPerColumn = Math.ceil((viewportHeight * 1.5) / (itemWidth + gap)); // Ensure enough items vertically
+            const totalItemsPerSection = Math.max(columns * itemsPerColumn, allMedia.length * 2); // Ensure enough items to avoid gaps if few media items exist
             
             // Create first grid section
             const section1 = document.createElement('div');
             section1.className = 'grid-section';
             
+            // Shuffle media before filling sections
+            const shuffledMedia = shuffleArray([...allMedia]);
+            
             // Fill first section
             for (let i = 0; i < totalItemsPerSection; i++) {
                 const mediaIndex = i % shuffledMedia.length;
+                if (!shuffledMedia[mediaIndex]) continue; // Skip if index is out of bounds (safety check)
                 const gridItem = createGridItem(shuffledMedia[mediaIndex]);
                 section1.appendChild(gridItem);
             }
@@ -122,14 +117,18 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add to container
             imageGridContainer.appendChild(imageGrid);
             
-            // Start videos playing
-            document.querySelectorAll('video').forEach(video => {
-                video.play().catch(() => {}); // Silent catch
+            // Start videos playing (use Intersection Observer for better performance later)
+            // For now, attempt to play all
+            document.querySelectorAll('.image-grid video').forEach(video => {
+                video.play().catch((e) => {
+                    // console.log('Autoplay prevented for a video:', e); 
+                    // Autoplay might be blocked by browser, which is expected.
+                }); 
             });
         }
         
-        // Create initial grid
-        createGrid();
+        // Load media data first, then create grid
+        loadMediaData();
         
         // Update grid on window resize
         let resizeTimeout;

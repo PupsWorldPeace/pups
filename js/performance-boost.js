@@ -25,11 +25,8 @@
         // Apply hardware acceleration hints
         applyHardwareAcceleration();
         
-        // Enable image preloading
-        preloadVisibleImages();
-        
-        // Set up intersection observer for lazy loading
-        setupLazyLoading();
+        // Set up intersection observer for lazy loading and other optimizations
+        setupIntersectionObserver();
         
         // Frame rate throttling for animations
         setupFrameThrottling();
@@ -38,243 +35,128 @@
         addResourceHints();
     });
     
-    // Apply hardware acceleration hints to key elements
+    // Apply hardware acceleration hints to key elements ONCE
     function applyHardwareAcceleration() {
-        // Elements that benefit from hardware acceleration
-        const acceleratedElements = [
-            '.gallery-item',
-            '.thumbnail',
-            '.modal',
-            '.modal-content',
-            'video',
-            'header',
-            '.menu-toggle',
-            '.mobile-menu',
-            '.sticker'
+        // Apply will-change to elements known to animate or transform
+        const selectors = [
+            '.gallery-item', // Transforms on hover
+            '.modal',        // Opacity/transform for display
+            '.falling-sticker' // Transform for animation
         ];
         
-        // Apply will-change property intelligently
-        acceleratedElements.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            if (elements.length > 0) {
-                elements.forEach(el => {
-                    // Only apply to visible elements to prevent excessive memory usage
-                    if (isElementVisible(el)) {
-                        if (selector.includes('gallery') || selector.includes('thumbnail')) {
-                            el.style.willChange = 'transform';
-                        } else if (selector.includes('modal')) {
-                            el.style.willChange = 'opacity, transform';
-                        } else if (selector === 'video') {
-                            el.style.willChange = 'transform';
-                            
-                            // Apply playback optimizations for videos
-                            if (el.tagName === 'VIDEO') {
-                                el.preload = isMobile ? 'metadata' : 'auto';
-                                el.muted = true;
-                                el.playsInline = true;
-                                
-                                // For low-power devices, lower resolution via CSS
-                                if (isLowPowerDevice) {
-                                    el.style.transform = 'scale(0.8)';
-                                    el.style.maxWidth = '95%';
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                if (selector === '.modal') {
+                    el.style.willChange = 'opacity, transform';
+                } else {
+                    el.style.willChange = 'transform';
+                }
+            });
         });
-        
+
+        // Apply video-specific attributes
+        document.querySelectorAll('video').forEach(el => {
+             el.preload = isMobile ? 'metadata' : 'auto'; // Load only metadata on mobile initially
+             el.muted = true; // Ensure videos are muted for autoplay policies
+             el.playsInline = true; // Crucial for iOS inline playback
+        });
+
         // Enable smooth scrolling only on non-low-power devices
         if (!isLowPowerDevice) {
             document.documentElement.style.scrollBehavior = 'smooth';
         }
     }
     
-    // Check if element is currently visible in viewport
-    function isElementVisible(el) {
-        const rect = el.getBoundingClientRect();
-        return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-        );
-    }
-    
-    // Preload images that are visible or near visible
-    function preloadVisibleImages() {
-        // Get all image elements
-        const images = document.querySelectorAll('img[src]:not([loading="lazy"])');
-        
-        // Set total image count for progress tracking
-        window.perfSettings.totalImages = images.length;
-        
-        // Create image preloader
-        images.forEach((img, index) => {
-            // Skip already loaded images
-            if (img.complete) {
-                window.perfSettings.imagesLoaded++;
-                return;
-            }
-            
-            // Stagger the loading of images to reduce initial burden
-            setTimeout(() => {
-                // Create a new image to preload
-                const preloadImg = new Image();
-                
-                // When image loads, update counter
-                preloadImg.onload = function() {
-                    window.perfSettings.imagesLoaded++;
-                    
-                    // Check if all images have been preloaded
-                    if (window.perfSettings.imagesLoaded >= window.perfSettings.totalImages) {
-                        window.perfSettings.preloadComplete = true;
-                        
-                        // Dispatch event that preloading is complete
-                        document.dispatchEvent(new CustomEvent('preloadComplete'));
+    // Setup Intersection Observer for lazy loading images/videos and optimizing playback
+    function setupIntersectionObserver() {
+        if (!('IntersectionObserver' in window)) {
+            console.warn("Intersection Observer not supported, lazy loading disabled.");
+            // Fallback: maybe load all images? Or do nothing.
+            return; 
+        }
+
+        const observerOptions = {
+            rootMargin: '200px 0px 200px 0px', // Load when 200px below/above viewport
+            threshold: 0.01 // Trigger when even a tiny part is visible
+        };
+
+        const mediaObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                const target = entry.target;
+
+                if (entry.isIntersecting) {
+                    // Load lazy images
+                    if (target.tagName === 'IMG' && target.dataset.src) {
+                        target.src = target.dataset.src;
+                        target.removeAttribute('data-src');
+                        target.style.opacity = 1; // Fade in
+                        observer.unobserve(target); // Stop observing once loaded
+                    } 
+                    // Play videos when they become visible (if autoplay is desired/allowed)
+                    else if (target.tagName === 'VIDEO') {
+                         // Check if it's in the main grid or a gallery thumbnail preview
+                        if (target.closest('.image-grid') || target.closest('.video-preview')) {
+                             target.play().catch(e => { /* Autoplay might fail, ignore error */ });
+                        }
                     }
-                };
-                
-                // Set source to begin loading
-                preloadImg.src = img.src;
-            }, isMobile ? index * 100 : index * 50); // Stagger more on mobile
+                } else {
+                     // Pause videos when they scroll out of view
+                     if (target.tagName === 'VIDEO') {
+                         target.pause();
+                     }
+                }
+            });
+        }, observerOptions);
+
+        // Observe all images with data-src and all videos
+        // Use requestIdleCallback or setTimeout to avoid blocking main thread
+        requestIdleCallback(() => {
+            document.querySelectorAll('img[data-src], video').forEach(el => {
+                 // Set initial opacity for fade-in effect for lazy images
+                 if (el.tagName === 'IMG' && el.dataset.src) {
+                     el.style.opacity = 0;
+                     el.style.transition = 'opacity 0.5s ease-in-out';
+                 }
+                 mediaObserver.observe(el);
+            });
         });
     }
     
-    // Setup advanced lazy loading with Intersection Observer
-    function setupLazyLoading() {
-        // Check if Intersection Observer is supported
-        if ('IntersectionObserver' in window) {
-            const lazyImageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const lazyImage = entry.target;
-                        
-                        // Handle different element types
-                        if (lazyImage.tagName === 'IMG') {
-                            if (lazyImage.dataset.src) {
-                                lazyImage.src = lazyImage.dataset.src;
-                                lazyImage.removeAttribute('data-src');
-                            }
-                        } else if (lazyImage.tagName === 'VIDEO') {
-                            if (lazyImage.dataset.src) {
-                                lazyImage.src = lazyImage.dataset.src;
-                                lazyImage.removeAttribute('data-src');
-                            }
-                            
-                            // Only autoplay videos if not a low-power device
-                            if (!isLowPowerDevice && !isMobile) {
-                                lazyImage.play().catch(e => console.log("Autoplay prevented:", e));
-                            }
-                        }
-                        
-                        // Show element with animation
-                        lazyImage.style.opacity = 1;
-                        
-                        // Stop observing this element
-                        observer.unobserve(lazyImage);
-                    }
-                });
-            }, {
-                rootMargin: '200px', // Load when within 200px of viewport
-                threshold: 0.01      // Trigger when 1% visible
-            });
-            
-            // Start observing elements with data-src attribute
-            document.querySelectorAll('img[data-src], video[data-src]').forEach(lazyElement => {
-                lazyImageObserver.observe(lazyElement);
-            });
-            
-            // Observe regular images and videos too for hardware acceleration
-            document.querySelectorAll('img[src], video').forEach(mediaElement => {
-                lazyImageObserver.observe(mediaElement);
-            });
-        }
-    }
-    
-    // Set up frame throttling for animations to improve performance
+    // Set up frame throttling for animations (only if needed and on low power)
     function setupFrameThrottling() {
-        // Only throttle on low-power devices
-        if (!isLowPowerDevice) return;
-        
-        // Polyfill for requestAnimationFrame
-        const raf = window.requestAnimationFrame || 
-                    window.webkitRequestAnimationFrame || 
-                    window.mozRequestAnimationFrame;
-        
-        if (raf) {
-            let frameCounter = 0;
-            const throttleAmount = window.perfSettings.frameThrottleAmount;
-            
-            // Override requestAnimationFrame to throttle frames
-            window.requestAnimationFrame = function(callback) {
-                frameCounter++;
-                
-                // Only execute animation frame callbacks every N frames
-                if (frameCounter % throttleAmount === 0) {
-                    return raf(callback);
-                }
-                
-                // Skip this frame
-                return raf(function() {
-                    // Empty callback to maintain timing
-                });
-            };
-        }
+        // Only apply throttling if necessary (e.g., for sticker animation)
+        // This implementation is aggressive and might break other animations.
+        // Consider applying throttling selectively within the animation loop itself (like in stickers-rain.js)
+        // if (!isLowPowerDevice) return; 
+        // console.log("Frame throttling enabled for low power device.");
+        // ... (Keep original throttling logic if deemed necessary, but test carefully) ...
     }
     
     // Add resource hints for faster page loading
     function addResourceHints() {
-        // Add DNS prefetch for external resources
+        // Add DNS prefetch and preconnect for external resources
         const domains = [
-            'https://cdnjs.cloudflare.com',
-            'https://fonts.googleapis.com',
-            'https://fonts.gstatic.com'
+            'https://cdnjs.cloudflare.com', // FontAwesome
+            'https://fonts.googleapis.com', // Google Fonts CSS
+            'https://fonts.gstatic.com'     // Google Fonts files
         ];
         
         // Create hint elements
         domains.forEach(domain => {
-            // DNS prefetch
-            let dns = document.createElement('link');
-            dns.rel = 'dns-prefetch';
-            dns.href = domain;
-            document.head.appendChild(dns);
-            
-            // Preconnect (faster but more resource intensive)
-            let preconnect = document.createElement('link');
+            const preconnect = document.createElement('link');
             preconnect.rel = 'preconnect';
             preconnect.href = domain;
+            preconnect.crossOrigin = "anonymous"; // Add crossorigin for font origins
             document.head.appendChild(preconnect);
+
+            const dnsPrefetch = document.createElement('link');
+            dnsPrefetch.rel = 'dns-prefetch';
+            dnsPrefetch.href = domain;
+            document.head.appendChild(dnsPrefetch);
         });
     }
+
+    // Removed the scroll-based will-change toggling as it's often detrimental.
+    // Hardware acceleration hints are now applied once on load.
     
-    // Initialize memory management
-    window.addEventListener('load', function() {
-        // Clear hardware acceleration for off-screen elements to save memory
-        window.addEventListener('scroll', function() {
-            // Throttle to run only every 500ms
-            if (!window.scrollThrottleTimer) {
-                window.scrollThrottleTimer = setTimeout(function() {
-                    // Find elements with will-change property
-                    document.querySelectorAll('[style*="will-change"]').forEach(el => {
-                        if (!isElementVisible(el)) {
-                            el.style.willChange = 'auto'; // Reset will-change
-                        } else {
-                            // Restore will-change for visible elements
-                            if (el.classList.contains('gallery-item') || 
-                                el.classList.contains('thumbnail')) {
-                                el.style.willChange = 'transform';
-                            } else if (el.classList.contains('modal') || 
-                                      el.classList.contains('modal-content')) {
-                                el.style.willChange = 'opacity, transform';
-                            }
-                        }
-                    });
-                    
-                    window.scrollThrottleTimer = null;
-                }, 500);
-            }
-        }, { passive: true });
-    });
 })();

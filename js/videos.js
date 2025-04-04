@@ -8,86 +8,73 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoTitle = document.getElementById('video-title');
     const videoDescription = document.getElementById('video-description');
     const downloadLink = document.getElementById('download-link');
-    const closeModal = document.querySelector('.close-modal');
+    const closeModalBtn = document.querySelector('.close-modal'); // Renamed variable for clarity
 
-    // Use real videos from the assets/videos folder
-    const videoFiles = [
-        'assets/videos/corn.mp4',
-        'assets/videos/couch.mp4',
-        'assets/videos/couch2.mp4',
-        'assets/videos/trump.mp4',
-        'assets/videos/trump2.mp4',
-        'assets/videos/trump3.mp4',
-        'assets/videos/trump4.mp4',
-        'assets/videos/trump5.mp4'
-    ];
+    let videos = []; // Will hold video data from manifest
+    let currentVideoId = null; // Keep track using the assigned ID
 
-    // Use real images for thumbnails
-    const thumbnailImages = [
-        'assets/images/by_charlie69746042_post_03ec3b28_4350_4e19_acbe_4f495a269128.webp',
-        'assets/images/by_lordworldpeace_post_00da90fa_4116_4ac6_bbd5_d18b0b0d1414.webp',
-        'assets/images/by_memedeckapp_post_023af0f9_bf65_4e52_8d9e_4eb2c898eef1.webp',
-        'assets/images/by_charlie69746042_post_06bcd730_aa10_4ab7_9e3a_77cd5d405512.webp',
-        'assets/images/by_lordworldpeace_post_074fdb15_29a5_4260_a3e2_35aaa5683e0e.webp',
-        'assets/images/by_memedeckapp_post_084e5fb9_0f76_4c85_a0d3_f9dfc29b5aa6.webp',
-        'assets/images/by_charlie69746042_post_0d55ff7d_03ca_4d55_8466_b4977b5ce8c1.webp',
-        'assets/images/by_lordworldpeace_post_19be5b12_4648_4f10_b0f8_ea35436a6eb2.webp'
-    ];
-
-    // Generate videos array from video files
-    const videos = videoFiles.map((videoPath, index) => {
-        // Extract filename for title and make it more presentable
-        const filename = videoPath.split('/').pop().replace('.mp4', '');
-        const formattedTitle = filename.charAt(0).toUpperCase() + filename.slice(1);
-        
-        // Determine category based on filename
-        let category = 'Other';
-        if (filename.includes('trump')) {
-            category = 'Projects';
-        } else if (filename.includes('couch')) {
-            category = 'Tutorials';
-        } else if (filename.includes('corn')) {
-            category = 'Travel';
+    // Fetch media data and filter for videos
+    async function loadVideoData() {
+        // Show loading message
+        if (videoGallery) {
+            videoGallery.innerHTML = '<p id="loading-message">Loading videos...</p>';
+        } else {
+            console.error("Video gallery container not found!");
+            return; // Exit if gallery container doesn't exist
         }
-        
-        return {
-            id: index + 1,
-            src: videoPath,
-            title: formattedTitle,
-            description: `A creative video in the ${category.toLowerCase()} category.`,
-            category: category,
-            thumbnail: thumbnailImages[index] // Assign a unique thumbnail to each video
-        };
-    });
 
-    // Current video being played
-    let currentVideoId = null;
+        try {
+            const response = await fetch('media-manifest.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const allMedia = await response.json();
+            // Filter for videos and assign a unique ID based on index within the filtered array
+            videos = allMedia
+                .filter(item => item.type === 'video')
+                .map((item, index) => ({ ...item, id: index })); // Assign index as ID
+
+            if (videos.length === 0) {
+                 videoGallery.innerHTML = '<p id="loading-message">No videos found.</p>';
+            } else {
+                displayVideos(); // Create gallery once data is loaded
+                addFilterButtons(); // Add filters based on loaded data
+            }
+        } catch (error) {
+            console.error("Could not load video data:", error);
+             if (videoGallery) {
+                videoGallery.innerHTML = '<p id="loading-message">Error loading video gallery.</p>';
+            }
+        }
+    }
 
     // Display videos in the gallery
     function displayVideos() {
-        videoGallery.innerHTML = '';
+        if (!videoGallery) return; // Safety check
+        videoGallery.innerHTML = ''; // Clear loading message or previous items
         
-        videos.forEach((video, index) => {
+        videos.forEach((video, index) => { // Use index from filtered data
             // Create gallery item
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item video-item';
-            galleryItem.dataset.id = video.id;
-            galleryItem.dataset.category = video.category.toLowerCase();
+            galleryItem.dataset.id = video.id; // Use the index-based ID
+            galleryItem.dataset.category = (video.category || 'other').toLowerCase(); // Use category from JSON, default to 'other'
             
             // Create video preview container
             const videoPreview = document.createElement('div');
             videoPreview.className = 'video-preview';
             
-            // Create video thumbnail
+            // Create video thumbnail using the 'thumbnail' property from JSON
             const thumbnail = document.createElement('img');
-            thumbnail.src = video.thumbnail;
-            thumbnail.alt = video.title;
+            // Use video.thumbnail if available, otherwise a default or leave blank
+            thumbnail.src = video.thumbnail || 'assets/images/video-placeholder.jpg'; // Use placeholder if no thumbnail specified
+            thumbnail.alt = video.title || 'Video Thumbnail'; // Use title from JSON for alt text
             thumbnail.loading = 'lazy'; // Add lazy loading for better performance
             
             // Create video play button overlay
             const playButton = document.createElement('div');
-            playButton.className = 'play-button';
-            playButton.innerHTML = '<i class="fas fa-play"></i>';
+            playButton.className = 'play-button'; // Use existing CSS class
+            playButton.innerHTML = '<i class="fas fa-play"></i>'; // Font Awesome play icon
             
             // Create item details
             const itemDetails = document.createElement('div');
@@ -96,12 +83,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create title
             const itemTitle = document.createElement('h3');
             itemTitle.className = 'item-title';
-            itemTitle.textContent = video.title;
+            itemTitle.textContent = video.title || 'Untitled Video'; // Use title from JSON
             
             // Create category
             const itemCategory = document.createElement('p');
             itemCategory.className = 'item-category';
-            itemCategory.textContent = video.category;
+            itemCategory.textContent = capitalizeFirstLetter(video.category || 'Other'); // Use category from JSON
             
             // Append elements
             videoPreview.appendChild(thumbnail);
@@ -112,9 +99,9 @@ document.addEventListener('DOMContentLoaded', function() {
             galleryItem.appendChild(videoPreview);
             galleryItem.appendChild(itemDetails);
             
-            // Add click event listener
+            // Add click event listener - use the item's assigned ID
             galleryItem.addEventListener('click', () => {
-                openVideoModal(video.id);
+                openVideoModal(video.id); // Pass the unique ID
             });
             
             videoGallery.appendChild(galleryItem);
@@ -122,45 +109,53 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add animation delay for staggered appearance
             setTimeout(() => {
                 galleryItem.classList.add('show');
-            }, index * 100);
+            }, index * 100); // Use index from the loop
         });
     }
 
-    // Open video modal with the selected video
+    // Open video modal with the selected video using its ID
     function openVideoModal(videoId) {
         const video = videos.find(v => v.id === videoId);
-        if (!video) return;
+        if (!video || !videoModal || !modalVideo || !videoTitle || !videoDescription || !downloadLink) {
+             console.error("Modal elements not found or video data missing.");
+             return; // Exit if elements or video data are missing
+        }
         
-        currentVideoId = videoId;
+        currentVideoId = videoId; // Store the ID
         
         // Update modal content
         modalVideo.src = video.src;
-        videoTitle.textContent = video.title;
-        videoDescription.textContent = video.description;
+        videoTitle.textContent = video.title || 'Untitled Video';
+        // Use a default description if none provided in JSON
+        videoDescription.textContent = video.description || `A creative ${video.category || 'other'} video.`;
         
         // Set up download link
         downloadLink.href = video.src;
-        downloadLink.download = `${video.title.toLowerCase().replace(/\s+/g, '-')}.mp4`;
+        // Generate download filename from title or use a default
+        const downloadFilename = video.title ? `${video.title.toLowerCase().replace(/\s+/g, '-')}.mp4` : `video-${video.id}.mp4`;
+        downloadLink.download = downloadFilename;
         
         // Show modal
         videoModal.style.display = 'block';
         document.body.style.overflow = 'hidden'; // Prevent scrolling
         
         // Load and play the video
-        modalVideo.load();
+        modalVideo.load(); // Ensure the video is loaded
         
-        // Play the video after a brief delay to allow the modal transition
-        setTimeout(() => {
-            try {
-                modalVideo.play();
-            } catch (error) {
-                console.error('Error playing video:', error);
-            }
-        }, 300);
+        // Attempt to play the video
+        // Use a promise to handle potential autoplay restrictions
+        const playPromise = modalVideo.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log("Autoplay was prevented:", error);
+                // Optionally show a play button overlay inside the modal if autoplay fails
+            });
+        }
     }
 
     // Close video modal
     function closeVideoModal() {
+        if (!videoModal || !modalVideo) return; // Safety check
         // Pause the video
         modalVideo.pause();
         
@@ -168,65 +163,90 @@ document.addEventListener('DOMContentLoaded', function() {
         videoModal.style.display = 'none';
         document.body.style.overflow = ''; // Restore scrolling
         
-        // Clear the source
+        // Clear the source to free up resources
         modalVideo.src = '';
+        modalVideo.removeAttribute('src'); // Ensure source is fully cleared
     }
 
-    // Event listener for close button
-    closeModal.addEventListener('click', closeVideoModal);
+    // Event listener for close button (check if button exists)
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeVideoModal);
+    } else {
+        console.warn("Close modal button not found.");
+    }
 
-    // Add keyboard navigation for modal
+
+    // Add keyboard navigation for modal (check if modal exists)
     document.addEventListener('keydown', (e) => {
-        if (videoModal.style.display === 'block') {
+        if (videoModal && videoModal.style.display === 'block') {
             if (e.key === 'Escape') {
                 closeVideoModal();
             }
         }
     });
     
-    // Add category filter buttons
+    // Helper function to capitalize first letter
+    function capitalizeFirstLetter(string = '') { // Add default value
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    // Add category filter buttons based on loaded video data
     function addFilterButtons() {
-        const categories = ['All', ...new Set(videos.map(video => video.category))];
-        const filterContainer = document.createElement('div');
+        if (videos.length === 0) return; // Don't add filters if no videos loaded
+
+        // Get unique categories from the loaded video data
+        const categories = ['All', ...new Set(videos.map(video => capitalizeFirstLetter(video.category || 'Other')))];
+        
+        // Check if filter container already exists, remove if it does to prevent duplicates
+        let filterContainer = document.querySelector('.filter-container');
+        if (filterContainer) {
+            filterContainer.remove();
+        }
+
+        filterContainer = document.createElement('div');
         filterContainer.className = 'filter-container';
         
         categories.forEach(category => {
             const button = document.createElement('button');
-            button.className = category === 'All' ? 'filter-btn active' : 'filter-btn';
+            // Use 'video-filter-btn' class as defined in CSS
+            button.className = category === 'All' ? 'video-filter-btn active' : 'video-filter-btn'; 
             button.textContent = category;
+            button.dataset.filter = category.toLowerCase(); // Store filter value
+
             button.addEventListener('click', () => {
-                // Update active button
-                document.querySelectorAll('.filter-btn').forEach(btn => {
+                // Update active button state
+                document.querySelectorAll('.video-filter-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
                 
-                // Filter videos
+                // Filter videos based on data-category attribute
+                const filterValue = button.dataset.filter;
                 const galleryItems = document.querySelectorAll('.video-item');
-                if (category === 'All') {
-                    galleryItems.forEach(item => {
-                        item.style.display = 'block';
-                    });
-                } else {
-                    galleryItems.forEach(item => {
-                        if (item.dataset.category === category.toLowerCase()) {
-                            item.style.display = 'block';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                }
+
+                galleryItems.forEach(item => {
+                    if (filterValue === 'all' || item.dataset.category === filterValue) {
+                        item.style.display = 'block'; // Show matching items
+                    } else {
+                        item.style.display = 'none'; // Hide non-matching items
+                    }
+                });
             });
             
             filterContainer.appendChild(button);
         });
         
-        // Insert filter container before the gallery
-        const contentHeader = document.querySelector('.content-header');
-        contentHeader.after(filterContainer);
+        // Insert filter container before the gallery (if gallery exists)
+        if (videoGallery) {
+             videoGallery.parentNode.insertBefore(filterContainer, videoGallery);
+        } else {
+            console.warn("Video gallery not found, cannot insert filters.");
+        }
+       
     }
     
-    // Initialize the gallery and filters
-    displayVideos();
-    addFilterButtons();
+    // Initialize the gallery by loading data
+    if (videoGallery) { // Only load if the gallery element exists on the page
+        loadVideoData();
+    }
 });

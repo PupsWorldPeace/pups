@@ -10,69 +10,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = photoModal.querySelector('.prev-btn');
     const nextBtn = photoModal.querySelector('.next-btn');
     
-    // Get all available images from our assets (this would normally be from a backend API)
-    // Using actual image files from assets/images directory
-    const imageFiles = [
-        'assets/images/by_charlie69746042_post_03ec3b28_4350_4e19_acbe_4f495a269128.webp',
-        'assets/images/by_lordworldpeace_post_00da90fa_4116_4ac6_bbd5_d18b0b0d1414.webp',
-        'assets/images/by_memedeckapp_post_023af0f9_bf65_4e52_8d9e_4eb2c898eef1.webp',
-        'assets/images/by_charlie69746042_post_06bcd730_aa10_4ab7_9e3a_77cd5d405512.webp',
-        'assets/images/by_lordworldpeace_post_074fdb15_29a5_4260_a3e2_35aaa5683e0e.webp',
-        'assets/images/by_memedeckapp_post_084e5fb9_0f76_4c85_a0d3_f9dfc29b5aa6.webp',
-        'assets/images/by_charlie69746042_post_0d55ff7d_03ca_4d55_8466_b4977b5ce8c1.webp',
-        'assets/images/by_lordworldpeace_post_19be5b12_4648_4f10_b0f8_ea35436a6eb2.webp',
-        'assets/images/by_memedeckapp_post_091735f2_42b1_4f4f_ad51_950a694d9b4f.webp',
-        'assets/images/by_charlie69746042_post_10a80810_55ee_4216_b849_8f7519974540.webp',
-        'assets/images/by_lordworldpeace_post_1b5a2529_6691_4147_9c30_65c3ef810bdd.webp',
-        'assets/images/by_memedeckapp_post_0a7f8502_6374_42a7_bb12_d7b421cd976d.webp'
-    ];
-    
-    // Generate gallery data from image files
-    const galleryData = imageFiles.map((imagePath, index) => {
-        // Extract filename as title (without path and extension)
-        const filename = imagePath.split('/').pop().replace('.webp', '');
-        
-        // Determine category based on filename
-        let category = 'other';
-        if (filename.includes('charlie')) {
-            category = 'abstract';
-        } else if (filename.includes('lordworldpeace')) {
-            category = 'nature';
-        } else if (filename.includes('memedeck')) {
-            category = 'urban';
-        } else if (filename.includes('simmer')) {
-            category = 'landscape';
-        }
-        
-        // Create a more readable title from the filename
-        const titleParts = filename.split('_');
-        let title = titleParts[0].replace('by', 'By');
-        
-        if (titleParts.length > 2) {
-            title += ' - ' + titleParts[2].charAt(0).toUpperCase() + titleParts[2].slice(1);
-        }
-        
-        return {
-            id: index + 1,
-            title: title,
-            description: `A creative ${category} image from our collection.`,
-            src: imagePath,
-            category: category
-        };
-    });
-    
+    let galleryData = []; // Will hold image data from manifest
     let currentImageIndex = 0;
+
+    // Fetch media data and filter for images
+    async function loadImageData() {
+        // Show loading message
+        if (photoGallery) {
+            photoGallery.innerHTML = '<p id="loading-message">Loading images...</p>';
+        } else {
+            console.error("Photo gallery container not found!");
+            return; // Exit if gallery container doesn't exist
+        }
+
+        try {
+            const response = await fetch('media-manifest.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const allMedia = await response.json();
+            // Filter for images and assign a unique ID based on index
+            galleryData = allMedia
+                .filter(item => item.type === 'image')
+                .map((item, index) => ({ ...item, id: index })); // Assign index as ID
+
+            if (galleryData.length === 0) {
+                 photoGallery.innerHTML = '<p id="loading-message">No images found.</p>';
+            } else {
+                createGalleryItems(); // Create gallery once data is loaded
+            }
+        } catch (error) {
+            console.error("Could not load image data:", error);
+             if (photoGallery) {
+                photoGallery.innerHTML = '<p id="loading-message">Error loading image gallery.</p>';
+            }
+        }
+    }
     
-    // Create gallery items
+    // Create gallery items from the loaded galleryData
     function createGalleryItems() {
-        photoGallery.innerHTML = '';
+        if (!photoGallery) return; // Safety check
+        photoGallery.innerHTML = ''; // Clear loading message or previous items
         
-        galleryData.forEach((item, index) => {
+        galleryData.forEach((item, index) => { // Use index from filtered data
             // Create gallery item
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
-            galleryItem.dataset.id = item.id;
-            galleryItem.dataset.category = item.category;
+            galleryItem.dataset.id = item.id; // Use the index-based ID
+            galleryItem.dataset.category = item.category || 'other'; // Use category from JSON, default to 'other'
             
             // Create image container
             const imageContainer = document.createElement('div');
@@ -81,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create image
             const img = document.createElement('img');
             img.src = item.src;
-            img.alt = item.title;
+            img.alt = item.title || 'Gallery Image'; // Use title from JSON for alt text
             img.loading = 'lazy'; // Add lazy loading for better performance
             
             // Create item details
@@ -91,12 +76,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create title
             const itemTitle = document.createElement('h3');
             itemTitle.className = 'item-title';
-            itemTitle.textContent = item.title;
+            itemTitle.textContent = item.title || 'Untitled Image'; // Use title from JSON
             
             // Create category
             const itemCategory = document.createElement('p');
             itemCategory.className = 'item-category';
-            itemCategory.textContent = capitalizeFirstLetter(item.category);
+            itemCategory.textContent = capitalizeFirstLetter(item.category || 'Other'); // Use category from JSON
             
             // Append elements
             imageContainer.appendChild(img);
@@ -106,9 +91,9 @@ document.addEventListener('DOMContentLoaded', function() {
             galleryItem.appendChild(imageContainer);
             galleryItem.appendChild(itemDetails);
             
-            // Add click event listener
+            // Add click event listener - use the item's assigned ID
             galleryItem.addEventListener('click', () => {
-                openModal(index);
+                openModal(item.id); // Pass the unique ID
             });
             
             photoGallery.appendChild(galleryItem);
@@ -116,20 +101,27 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add animation delay for staggered appearance
             setTimeout(() => {
                 galleryItem.classList.add('show');
-            }, index * 100);
+            }, index * 100); // Use index from the loop
         });
     }
     
-    // Open modal with image
-    function openModal(index) {
-        currentImageIndex = index;
-        const image = galleryData[index];
+    // Open modal with image using its ID
+    function openModal(imageId) {
+        // Find the index of the image with the matching ID
+        const imageIndex = galleryData.findIndex(item => item.id === imageId);
+        if (imageIndex === -1) return; // Image not found
+
+        currentImageIndex = imageIndex; // Store the current index
+        const image = galleryData[currentImageIndex];
         
         modalImg.src = image.src;
-        imageTitle.textContent = image.title;
-        imageDescription.textContent = image.description;
+        imageTitle.textContent = image.title || 'Untitled Image';
+        // Use a default description if none provided in JSON
+        imageDescription.textContent = image.description || `A creative ${image.category || 'other'} image.`; 
         downloadLink.href = image.src;
-        downloadLink.download = `${image.title.toLowerCase().replace(/\s+/g, '-')}.webp`;
+        // Generate download filename from title or use a default
+        const downloadFilename = image.title ? `${image.title.toLowerCase().replace(/\s+/g, '-')}.webp` : `image-${image.id}.webp`;
+        downloadLink.download = downloadFilename;
         
         photoModal.style.display = 'block';
         document.body.style.overflow = 'hidden';
@@ -143,36 +135,40 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Navigate to previous image
     function prevImage() {
+        if (galleryData.length === 0) return;
         currentImageIndex = (currentImageIndex === 0) ? galleryData.length - 1 : currentImageIndex - 1;
-        openModal(currentImageIndex);
+        openModal(galleryData[currentImageIndex].id); // Open using the ID
     }
     
     // Navigate to next image
     function nextImage() {
+         if (galleryData.length === 0) return;
         currentImageIndex = (currentImageIndex === galleryData.length - 1) ? 0 : currentImageIndex + 1;
-        openModal(currentImageIndex);
+        openModal(galleryData[currentImageIndex].id); // Open using the ID
     }
     
     // Helper function to capitalize first letter
-    function capitalizeFirstLetter(string) {
+    function capitalizeFirstLetter(string = '') { // Add default value
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
     
-    // Event listeners
-    closeBtn.addEventListener('click', closeModal);
-    prevBtn.addEventListener('click', prevImage);
-    nextBtn.addEventListener('click', nextImage);
+    // Event listeners (only add if elements exist)
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (prevBtn) prevBtn.addEventListener('click', prevImage);
+    if (nextBtn) nextBtn.addEventListener('click', nextImage);
     
     // Close modal when clicking outside content
-    photoModal.addEventListener('click', (e) => {
-        if (e.target === photoModal) {
-            closeModal();
-        }
-    });
+    if (photoModal) {
+        photoModal.addEventListener('click', (e) => {
+            if (e.target === photoModal) {
+                closeModal();
+            }
+        });
+    }
     
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
-        if (photoModal.style.display === 'block') {
+        if (photoModal && photoModal.style.display === 'block') { // Check if modal exists
             if (e.key === 'Escape') {
                 closeModal();
             } else if (e.key === 'ArrowLeft') {
@@ -183,6 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Initialize gallery
-    createGalleryItems();
+    // Initialize gallery by loading data
+    if (photoGallery) { // Only load if the gallery element exists on the page
+       loadImageData();
+    }
 });
