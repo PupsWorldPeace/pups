@@ -46,9 +46,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 addFilterButtons(); // Add filters based on loaded data
             }
         } catch (error) {
-            console.error("Could not load video data:", error);
+            console.error("Could not load video data from media-manifest.json:", error); // More specific error
              if (videoGallery) {
-                videoGallery.innerHTML = '<p id="loading-message">Error loading video gallery.</p>';
+                 // Display the actual error message for debugging
+                videoGallery.innerHTML = `<p id="loading-message" style="color: red;">Error loading video gallery: ${error.message}. Check console.</p>`;
             }
         }
     }

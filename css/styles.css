@@ -155,7 +155,9 @@ body[class*="videos"] .bottom-flower,
     left: 0;
     width: 100%;
     z-index: 100; /* Well above stickers */
-    height: 120px; /* 2x the size */
+    /* height: 120px; */ /* Remove fixed height, rely on padding */
+    height: auto; /* Allow height to adjust */
+    min-height: 80px; /* Set a minimum height */
     box-sizing: border-box;
     border-bottom: 4px solid var(--border-color);
 }
@@ -168,7 +170,7 @@ body[class*="videos"] .bottom-flower,
 
 .nav-links {
     order: 1; /* Move to left */
-    flex-grow: 1; /* Allow links to take available space */
+    /* flex-grow: 1; */ /* Removed flex-grow */
 }
 
 .logo-button, .nav-button {
@@ -216,15 +218,27 @@ body[class*="videos"] .bottom-flower,
 
 
 @media (max-width: 768px) {
-    /* Ensure nav-links are always displayed */
+    /* Ensure nav-links are always displayed and hamburger is hidden */
     .nav-links {
-        display: flex; /* Keep flex display */
-        justify-content: center; /* Center buttons on mobile */
-        flex-grow: 1;
+        display: block !important; /* Ensure it's displayed */
+        width: 100%; /* Allow it to take full width if needed */
+        text-align: center; /* Center the list */
+        order: 1; /* Ensure it comes first visually if needed */
+        flex-grow: 1; /* Let it take space */
+    }
+    .nav-links ul {
+        display: flex !important; /* Ensure ul is flex */
+        justify-content: center; /* Center buttons */
+        flex-wrap: wrap; /* Allow wrapping */
+        gap: 8px; /* Keep gap */
+        padding: 0; /* Remove default padding */
+        height: auto; /* Let height be determined by content */
     }
     
-    /* Removed hamburger display rule */
-    
+    .hamburger-menu, .mobile-nav-overlay {
+         display: none !important; /* Ensure hamburger/overlay are hidden */
+    }
+        
     /* Adjust nav height and button size for mobile */
     .grid-section {
         grid-template-columns: repeat(auto-fill, minmax(150px, 150px)) !important;
@@ -267,11 +281,14 @@ body[class*="videos"] .bottom-flower,
 
 /* === Image Grid (Homepage) === */
 .image-grid-container {
-    position: relative;
+    position: fixed; /* Changed from relative */
+    top: 0; /* Position from top */
+    left: 0;
     width: 100%;
     height: 100vh;
-    margin-top: 120px; /* Match the new header height */
-    padding: 0;
+    /* margin-top: 120px; */ /* Removed margin-top */
+    padding-top: 120px; /* Add padding equal to header height */
+    padding-bottom: 80px; /* Add padding equal to footer height */
     box-sizing: border-box;
     overflow: hidden;
     padding-bottom: 100px; /* Space for footer */
@@ -1729,6 +1746,7 @@ html, body {
     .nav-button {
         font-size: 18px; /* Slightly smaller font */
         padding: 10px 15px; /* Adjust padding */
+        /* background-color: lime !important; */ /* REMOVED TEMPORARY background */
     }
 }
 

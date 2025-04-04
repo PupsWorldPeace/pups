@@ -43,9 +43,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 createGalleryItems(); // Create gallery now that loading message is cleared
             }
         } catch (error) {
-            console.error("Could not load image data:", error);
+            console.error("Could not load image data from media-manifest.json:", error); // More specific error
              if (photoGallery) {
-                photoGallery.innerHTML = '<p id="loading-message">Error loading image gallery.</p>';
+                // Display the actual error message for debugging
+                photoGallery.innerHTML = `<p id="loading-message" style="color: red;">Error loading image gallery: ${error.message}. Check console.</p>`;
             }
         }
     }
