@@ -33,11 +33,14 @@ document.addEventListener('DOMContentLoaded', function() {
             galleryData = allMedia
                 .filter(item => item.type === 'image')
                 .map((item, index) => ({ ...item, id: index })); // Assign index as ID
+            
+            // Clear loading message / previous content first
+            photoGallery.innerHTML = ''; 
 
             if (galleryData.length === 0) {
                  photoGallery.innerHTML = '<p id="loading-message">No images found.</p>';
             } else {
-                createGalleryItems(); // Create gallery once data is loaded
+                createGalleryItems(); // Create gallery now that loading message is cleared
             }
         } catch (error) {
             console.error("Could not load image data:", error);

@@ -77,7 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Calculate layout for responsive design
             const viewportWidth = window.innerWidth;
-            const itemWidth = 220; // Width of each grid item
+            // Determine item width based on viewport size (matches CSS media query)
+            const isMobileView = viewportWidth <= 768;
+            const itemWidth = isMobileView ? 120 : 220; 
             const gap = 8; // Gap between items
             const columns = Math.max(1, Math.floor(viewportWidth / (itemWidth + gap)));
             

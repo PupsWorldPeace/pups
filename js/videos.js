@@ -36,10 +36,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 .filter(item => item.type === 'video')
                 .map((item, index) => ({ ...item, id: index })); // Assign index as ID
 
+            // Clear loading message / previous content first
+            videoGallery.innerHTML = ''; 
+
             if (videos.length === 0) {
                  videoGallery.innerHTML = '<p id="loading-message">No videos found.</p>';
             } else {
-                displayVideos(); // Create gallery once data is loaded
+                displayVideos(); // Create gallery now that loading message is cleared
                 addFilterButtons(); // Add filters based on loaded data
             }
         } catch (error) {
