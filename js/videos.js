@@ -8,10 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoTitle = document.getElementById('video-title');
     const videoDescription = document.getElementById('video-description');
     const downloadLink = document.getElementById('download-link');
-    const closeModalBtn = document.querySelector('.close-modal'); // Renamed variable for clarity
+    const closeModalBtn = videoModal ? videoModal.querySelector('.modal-close') : null; // Check if modal exists
+    const prevBtn = videoModal ? videoModal.querySelector('.modal-prev') : null; // Get nav buttons
+    const nextBtn = videoModal ? videoModal.querySelector('.modal-next') : null; // Get nav buttons
 
     let videos = []; // Will hold video data from manifest
-    let currentVideoId = null; // Keep track using the assigned ID
+    let currentVideoIndex = -1; // Keep track using the index in the 'videos' array
 
     // Fetch media data and filter for videos
     async function loadVideoData() {
@@ -115,13 +117,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Open video modal with the selected video using its ID
     function openVideoModal(videoId) {
-        const video = videos.find(v => v.id === videoId);
-        if (!video || !videoModal || !modalVideo || !videoTitle || !videoDescription || !downloadLink) {
+        // Find the index of the video with the matching ID
+        const videoIndex = videos.findIndex(v => v.id === videoId);
+        if (videoIndex === -1 || !videoModal || !modalVideo || !videoTitle || !videoDescription || !downloadLink) {
              console.error("Modal elements not found or video data missing.");
              return; // Exit if elements or video data are missing
         }
         
-        currentVideoId = videoId; // Store the ID
+        currentVideoIndex = videoIndex; // Store the current index
+        const video = videos[currentVideoIndex]; // Get video data using index
         
         // Update modal content
         modalVideo.src = video.src;
@@ -168,6 +172,20 @@ document.addEventListener('DOMContentLoaded', function() {
         modalVideo.removeAttribute('src'); // Ensure source is fully cleared
     }
 
+    // Navigate to previous video
+    function prevVideo() {
+        if (videos.length === 0) return;
+        currentVideoIndex = (currentVideoIndex === 0) ? videos.length - 1 : currentVideoIndex - 1;
+        openVideoModal(videos[currentVideoIndex].id); // Open using the ID
+    }
+    
+    // Navigate to next video
+    function nextVideo() {
+         if (videos.length === 0) return;
+        currentVideoIndex = (currentVideoIndex === videos.length - 1) ? 0 : currentVideoIndex + 1;
+        openVideoModal(videos[currentVideoIndex].id); // Open using the ID
+    }
+
     // Event listener for close button (check if button exists)
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeVideoModal);
@@ -175,12 +193,27 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn("Close modal button not found.");
     }
 
+    // Event listeners for nav buttons (check if buttons exist)
+    if (prevBtn) {
+        prevBtn.addEventListener('click', prevVideo);
+    } else {
+         console.warn("Previous button not found in video modal.");
+    }
+     if (nextBtn) {
+        nextBtn.addEventListener('click', nextVideo);
+    } else {
+         console.warn("Next button not found in video modal.");
+    }
 
     // Add keyboard navigation for modal (check if modal exists)
     document.addEventListener('keydown', (e) => {
         if (videoModal && videoModal.style.display === 'block') {
             if (e.key === 'Escape') {
                 closeVideoModal();
+            } else if (e.key === 'ArrowLeft') { // Add left arrow navigation
+                prevVideo();
+            } else if (e.key === 'ArrowRight') { // Add right arrow navigation
+                nextVideo();
             }
         }
     });

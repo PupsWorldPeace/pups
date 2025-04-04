@@ -88,7 +88,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create a large enough pattern to fill more than the screen
             // This ensures there's no empty space during scrolling
             const viewportHeight = window.innerHeight;
-            const itemsPerColumn = Math.ceil((viewportHeight * 1.5) / (itemWidth + gap)); // Ensure enough items vertically
+            // Increase multiplier further to 2.5 for even more buffer against gaps
+            const itemsPerColumn = Math.ceil((viewportHeight * 2.5) / (itemWidth + gap)); 
             const totalItemsPerSection = Math.max(columns * itemsPerColumn, allMedia.length * 2); // Ensure enough items to avoid gaps if few media items exist
             
             // Create first grid section
