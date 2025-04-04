@@ -168,6 +168,7 @@ body[class*="videos"] .bottom-flower,
 
 .nav-links {
     order: 1; /* Move to left */
+    flex-grow: 1; /* Allow links to take available space */
 }
 
 .logo-button, .nav-button {
@@ -199,100 +200,32 @@ body[class*="videos"] .bottom-flower,
     padding: 0;
     align-items: center;
     height: 100%;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    justify-content: flex-start; /* Align wrapped buttons to the start */
+    gap: 8px; /* Add gap between wrapped buttons */
 }
 
 .nav-links li {
-    margin: 0 5px;
+    margin: 0; /* Remove default margin */
     position: relative;
 }
 
-/* Hamburger Menu */
-.hamburger-menu {
-    display: none;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 30px;
-    height: 21px;
-    cursor: pointer;
-    z-index: 200;
-}
+/* Removed Hamburger Menu styles */
+/* Removed Mobile Nav Overlay styles */
+/* Removed Hamburger Animation styles */
 
-.hamburger-menu span {
-    display: block;
-    height: 3px;
-    width: 100%;
-    background-color: var(--light-color);
-    border-radius: 3px;
-    transition: all 0.3s ease;
-}
-
-.mobile-nav-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--primary-color);
-    z-index: 90;
-    opacity: 0.95;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.3s ease;
-}
-
-.mobile-nav-overlay.active {
-    display: flex;
-}
-
-.mobile-nav-links {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.mobile-nav-links li {
-    margin: 15px 0;
-    list-style: none;
-}
-
-.mobile-nav-links li a {
-    font-size: 1.5rem;
-    color: var(--light-color);
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.mobile-nav-links li a:hover {
-    color: var(--accent-color);
-}
-
-/* Animation for hamburger to X */
-.hamburger-menu.active span:nth-child(1) {
-    transform: translateY(9px) rotate(45deg);
-}
-
-.hamburger-menu.active span:nth-child(2) {
-    opacity: 0;
-}
-
-.hamburger-menu.active span:nth-child(3) {
-    transform: translateY(-9px) rotate(-45deg);
-}
 
 @media (max-width: 768px) {
+    /* Ensure nav-links are always displayed */
     .nav-links {
-        display: none;
+        display: flex; /* Keep flex display */
+        justify-content: center; /* Center buttons on mobile */
+        flex-grow: 1;
     }
     
-    .hamburger-menu {
-        display: flex;
-    }
+    /* Removed hamburger display rule */
     
-    /* Other mobile styles remain the same */
+    /* Adjust nav height and button size for mobile */
     .grid-section {
         grid-template-columns: repeat(auto-fill, minmax(150px, 150px)) !important;
         grid-auto-rows: 150px !important;
@@ -1752,29 +1685,35 @@ html, body {
 
 /* === Mobile Optimizations === */
 @media (max-width: 768px) {
-    /* Adjusted grid for mobile */
+    /* Adjusted grid for mobile - aiming for 3 columns */
+    .main-nav {
+        height: auto; /* Allow height to adjust based on wrapped content */
+        min-height: 80px; /* Keep a minimum height */
+        padding-top: 15px; /* Add padding for wrapped buttons */
+        padding-bottom: 15px;
+    }
+
+    /* Adjust grid for mobile - aiming for 3 columns */
     .grid-section {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 150px)) !important;
-        grid-auto-rows: 150px !important;
+        /* Use smaller fixed size to fit more columns */
+        grid-template-columns: repeat(auto-fill, minmax(120px, 120px)) !important; 
+        grid-auto-rows: 120px !important; /* Keep items square */
     }
     
     .grid-item {
-        width: 150px;
-        height: 150px;
+        width: 120px; /* Match the grid column size */
+        height: 120px; /* Match the grid row size */
     }
-    
-    /* Adjust header for mobile */
-    .main-nav {
-        height: 80px;
-    }
-    
-    /* Adjust margin top for content */
+        
+    /* Adjust margin top for content based on potentially variable nav height */
+    /* This might need dynamic adjustment if nav height changes significantly */
     .image-grid-container,
     .gallery, 
     #images-gallery, 
     #videos-gallery,
     .main-content {
-        margin-top: 80px;
+        /* Use a larger fixed margin or adjust dynamically if needed */
+        margin-top: 100px; /* Increased margin top */
     }
     
     /* Font size adjustments for mobile */
@@ -1786,15 +1725,17 @@ html, body {
         font-size: 1.5rem;
     }
     
-    .nav-links li a {
-        font-size: 0.9rem;
-        padding: 5px;
+    /* Adjust nav button padding/size slightly for mobile if needed */
+    .nav-button {
+        font-size: 18px; /* Slightly smaller font */
+        padding: 10px 15px; /* Adjust padding */
     }
 }
 
 /* Performance optimizations for animations */
 .image-grid {
-    animation: infiniteScroll 60s linear infinite;
+    /* Speed up animation by reducing duration */
+    animation: infiniteScroll 30s linear infinite; 
     will-change: transform;
     transform: translateZ(0); /* Force hardware acceleration */
     backface-visibility: hidden;
@@ -1926,8 +1867,11 @@ body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, a, span, div {
     }
     
     .gallery {
-        grid-template-columns: repeat(2, 1fr); /* Changed from 3 columns to 2 columns for better visibility */
-        grid-gap: 12px; /* Increased from 8px for better spacing */
+        /* Adjust gallery grid on mobile too if needed, using similar logic */
+        /* Example: grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); */
+        /* Keeping previous setting for now, adjust if needed based on testing */
+        grid-template-columns: repeat(2, 1fr); 
+        grid-gap: 12px; 
     }
     
     .gallery .thumbnail {
