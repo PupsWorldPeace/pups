@@ -1734,8 +1734,8 @@ html, body {
 
 /* Performance optimizations for animations */
 .image-grid {
-    /* Speed up animation by reducing duration */
-    animation: infiniteScroll 30s linear infinite; 
+    /* Adjust animation speed */
+    animation: infiniteScroll 45s linear infinite; 
     will-change: transform;
     transform: translateZ(0); /* Force hardware acceleration */
     backface-visibility: hidden;
