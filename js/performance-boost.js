@@ -13,11 +13,8 @@
     // Store performance settings globally
     window.perfSettings = {
         isMobile: isMobile,
-        isLowPowerDevice: isLowPowerDevice,
-        imagesLoaded: 0,
-        totalImages: 0,
-        preloadComplete: false,
-        frameThrottleAmount: isLowPowerDevice ? 3 : 1
+        isLowPowerDevice: isLowPowerDevice
+        // Removed unused properties: imagesLoaded, totalImages, preloadComplete, frameThrottleAmount
     };
     
     // Initialize performance optimizations when DOM is ready

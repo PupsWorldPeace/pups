@@ -1,190 +1,169 @@
-// JavaScript for the image gallery
+// Rewritten Image Gallery Logic (using Manifest)
 document.addEventListener('DOMContentLoaded', function() {
-    const photoGallery = document.getElementById('photo-gallery');
-    const photoModal = document.getElementById('photo-modal');
-    const modalImg = document.getElementById('modal-img');
-    const imageTitle = document.getElementById('image-title');
-    const imageDescription = document.getElementById('image-description');
-    const downloadLink = document.getElementById('download-photo-link');
-    const closeBtn = photoModal.querySelector('.close-modal');
-    const prevBtn = photoModal.querySelector('.prev-btn');
-    const nextBtn = photoModal.querySelector('.next-btn');
-    
-    let galleryData = []; // Will hold image data from manifest
-    let currentImageIndex = 0;
+    console.log("images.js: DOMContentLoaded");
+    const photoGallery = document.getElementById('images-gallery');
+    const photoModal = document.getElementById('image-modal'); 
 
-    // Fetch media data and filter for images
-    async function loadImageData() {
-        // Show loading message
-        if (photoGallery) {
-            photoGallery.innerHTML = '<p id="loading-message">Loading images...</p>';
-        } else {
-            console.error("Photo gallery container not found!");
-            return; // Exit if gallery container doesn't exist
-        }
+    if (!photoGallery || !photoModal) {
+        console.error("images.js: Gallery or Modal element not found!");
+        return;
+    }
 
+    let galleryData = []; // Holds the filtered image data
+    let currentImageIndex = -1; // Track modal index
+
+    // --- Modal Element References ---
+    const modalImg = photoModal.querySelector('#modal-image');
+    const downloadWebpBtn = photoModal.querySelector('#download-image-webp');
+    const downloadPngBtn = photoModal.querySelector('#download-image-png'); 
+    const closeBtn = photoModal.querySelector('.modal-close');
+    const prevBtn = photoModal.querySelector('.modal-prev');
+    const nextBtn = photoModal.querySelector('.modal-next');
+
+    // --- Fetch and Process Manifest ---
+    async function loadImageGallery() {
+        photoGallery.innerHTML = '<p id="loading-message">Loading images...</p>';
+        console.log("images.js: Loading message set.");
+        
         try {
             const response = await fetch('media-manifest.json');
+            console.log(`images.js: Fetch status: ${response.status}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const allMedia = await response.json();
-            // Filter for images and assign a unique ID based on index
-            galleryData = allMedia
-                .filter(item => item.type === 'image')
-                .map((item, index) => ({ ...item, id: index })); // Assign index as ID
-            
-            // Clear loading message / previous content first
-            photoGallery.innerHTML = ''; 
+            console.log("images.js: Manifest parsed.");
 
-            if (galleryData.length === 0) {
-                 photoGallery.innerHTML = '<p id="loading-message">No images found.</p>';
-            } else {
-                createGalleryItems(); // Create gallery now that loading message is cleared
+            if (!Array.isArray(allMedia)) {
+                 throw new Error("Manifest data is not an array.");
             }
+
+            // Filter for images EXCLUDING category "meme" and assign unique ID
+            galleryData = allMedia
+                .filter(item => item && item.type === 'image' && item.category !== 'meme') // Exclude memes
+                .map((item, index) => ({ ...item, id: index })); // Assign index as ID
+            console.log(`images.js: Found ${galleryData.length} images (excluding memes).`);
+
+            renderGallery();
+
         } catch (error) {
-            console.error("Could not load image data from media-manifest.json:", error); // More specific error
-             if (photoGallery) {
-                // Display the actual error message for debugging
-                photoGallery.innerHTML = `<p id="loading-message" style="color: red;">Error loading image gallery: ${error.message}. Check console.</p>`;
-            }
+            console.error("images.js: Error loading image gallery:", error);
+            // Use CSS class for error message
+            photoGallery.innerHTML = `<p id="loading-message" class="loading-error">Error loading images: ${error.message}.</p>`; 
         }
     }
-    
-    // Create gallery items from the loaded galleryData
-    function createGalleryItems() {
-        if (!photoGallery) return; // Safety check
-        photoGallery.innerHTML = ''; // Clear loading message or previous items
-        
-        galleryData.forEach((item, index) => { // Use index from filtered data
-            // Create gallery item
-            const galleryItem = document.createElement('div');
-            galleryItem.className = 'gallery-item';
-            galleryItem.dataset.id = item.id; // Use the index-based ID
-            galleryItem.dataset.category = item.category || 'other'; // Use category from JSON, default to 'other'
-            
-            // Create image container
-            const imageContainer = document.createElement('div');
-            imageContainer.className = 'item-image';
-            
-            // Create image
-            const img = document.createElement('img');
-            img.src = item.src;
-            img.alt = item.title || 'Gallery Image'; // Use title from JSON for alt text
-            img.loading = 'lazy'; // Add lazy loading for better performance
-            
-            // Create item details
-            const itemDetails = document.createElement('div');
-            itemDetails.className = 'item-details';
-            
-            // Create title
-            const itemTitle = document.createElement('h3');
-            itemTitle.className = 'item-title';
-            itemTitle.textContent = item.title || 'Untitled Image'; // Use title from JSON
-            
-            // Create category
-            const itemCategory = document.createElement('p');
-            itemCategory.className = 'item-category';
-            itemCategory.textContent = capitalizeFirstLetter(item.category || 'Other'); // Use category from JSON
-            
-            // Append elements
-            imageContainer.appendChild(img);
-            itemDetails.appendChild(itemTitle);
-            itemDetails.appendChild(itemCategory);
-            
-            galleryItem.appendChild(imageContainer);
-            galleryItem.appendChild(itemDetails);
-            
-            // Add click event listener - use the item's assigned ID
-            galleryItem.addEventListener('click', () => {
-                openModal(item.id); // Pass the unique ID
-            });
-            
-            photoGallery.appendChild(galleryItem);
-            
-            // Add animation delay for staggered appearance
-            setTimeout(() => {
-                galleryItem.classList.add('show');
-            }, index * 100); // Use index from the loop
-        });
-    }
-    
-    // Open modal with image using its ID
-    function openModal(imageId) {
-        // Find the index of the image with the matching ID
-        const imageIndex = galleryData.findIndex(item => item.id === imageId);
-        if (imageIndex === -1) return; // Image not found
 
-        currentImageIndex = imageIndex; // Store the current index
+    // --- Render Gallery Items ---
+    function renderGallery() {
+        photoGallery.innerHTML = ''; // Clear loading message
+        if (galleryData.length === 0) {
+            photoGallery.innerHTML = '<p>No images found.</p>';
+            return;
+        }
+        
+        console.log("images.js: Rendering gallery items...");
+        galleryData.forEach((item, index) => {
+            if (!item || !item.src) {
+                console.warn(`images.js: Skipping image item at index ${index}, missing data.`);
+                return; 
+            }
+            try {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item'; 
+                galleryItem.dataset.index = index; // Store index for modal navigation
+
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = item.title || 'Gallery Image'; 
+                img.loading = 'lazy';
+                
+                img.onerror = () => {
+                    console.error(`images.js: Failed to load image: ${img.src}`);
+                    // Use CSS class for error message
+                    galleryItem.innerHTML = `<p class="image-load-error">Load Error</p>`; 
+                };
+
+                galleryItem.appendChild(img);
+                
+                // Add click listener for modal
+                galleryItem.addEventListener('click', () => {
+                    openModal(index);
+                });
+
+                photoGallery.appendChild(galleryItem);
+            } catch(e) {
+                 console.error(`images.js: Error creating gallery item ${index}:`, e);
+            }
+        });
+        console.log("images.js: Finished rendering gallery items.");
+        setupModalNavListeners(); // Setup listeners after items are rendered
+    }
+
+    // --- Modal Logic ---
+    function openModal(index) {
+        if (index < 0 || index >= galleryData.length || !photoModal || !modalImg || !downloadWebpBtn) {
+            console.error("images.js: Cannot open modal - invalid index or modal elements missing.");
+            return;
+        }
+        
+        currentImageIndex = index;
         const image = galleryData[currentImageIndex];
-        
+
         modalImg.src = image.src;
-        imageTitle.textContent = image.title || 'Untitled Image';
-        // Use a default description if none provided in JSON
-        imageDescription.textContent = image.description || `A creative ${image.category || 'other'} image.`; 
-        downloadLink.href = image.src;
-        // Generate download filename from title or use a default
-        const downloadFilename = image.title ? `${image.title.toLowerCase().replace(/\s+/g, '-')}.webp` : `image-${image.id}.webp`;
-        downloadLink.download = downloadFilename;
-        
-        photoModal.style.display = 'block';
+        modalImg.alt = image.title || 'Gallery Image';
+
+        const filenameBase = (image.title || `image-${index}`).toLowerCase().replace(/\s+/g, '-');
+        downloadWebpBtn.onclick = () => downloadFile(image.src, `${filenameBase}.webp`);
+        // if (downloadPngBtn) downloadPngBtn.onclick = () => downloadFile(image.src, `${filenameBase}.png`); // Optional
+
+        photoModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
-    
-    // Close modal
+
     function closeModal() {
+        if (!photoModal) return;
         photoModal.style.display = 'none';
         document.body.style.overflow = 'auto';
     }
-    
-    // Navigate to previous image
-    function prevImage() {
+
+    function navigateModal(direction) {
         if (galleryData.length === 0) return;
-        currentImageIndex = (currentImageIndex === 0) ? galleryData.length - 1 : currentImageIndex - 1;
-        openModal(galleryData[currentImageIndex].id); // Open using the ID
+        let newIndex = currentImageIndex + direction;
+        if (newIndex < 0) newIndex = galleryData.length - 1;
+        else if (newIndex >= galleryData.length) newIndex = 0;
+        openModal(newIndex);
+    }
+
+    function setupModalNavListeners() {
+         if (closeBtn) closeBtn.addEventListener('click', closeModal);
+         if (prevBtn) prevBtn.addEventListener('click', () => navigateModal(-1)); 
+         if (nextBtn) nextBtn.addEventListener('click', () => navigateModal(1)); 
+
+         document.addEventListener('keydown', (e) => {
+             if (photoModal && getComputedStyle(photoModal).display === 'flex') { 
+                 if (e.key === 'Escape') closeModal();
+                 else if (e.key === 'ArrowLeft') navigateModal(-1);
+                 else if (e.key === 'ArrowRight') navigateModal(1);
+             }
+         });
+
+         photoModal.addEventListener('click', (e) => {
+             if (e.target === photoModal) closeModal();
+         });
     }
     
-    // Navigate to next image
-    function nextImage() {
-         if (galleryData.length === 0) return;
-        currentImageIndex = (currentImageIndex === galleryData.length - 1) ? 0 : currentImageIndex + 1;
-        openModal(galleryData[currentImageIndex].id); // Open using the ID
+    // --- Helper ---
+    function downloadFile(url, filename) {
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => document.body.removeChild(a), 100);
     }
-    
-    // Helper function to capitalize first letter
-    function capitalizeFirstLetter(string = '') { // Add default value
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-    
-    // Event listeners (only add if elements exist)
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (prevBtn) prevBtn.addEventListener('click', prevImage);
-    if (nextBtn) nextBtn.addEventListener('click', nextImage);
-    
-    // Close modal when clicking outside content
-    if (photoModal) {
-        photoModal.addEventListener('click', (e) => {
-            if (e.target === photoModal) {
-                closeModal();
-            }
-        });
-    }
-    
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (photoModal && photoModal.style.display === 'block') { // Check if modal exists
-            if (e.key === 'Escape') {
-                closeModal();
-            } else if (e.key === 'ArrowLeft') {
-                prevImage();
-            } else if (e.key === 'ArrowRight') {
-                nextImage();
-            }
-        }
-    });
-    
-    // Initialize gallery by loading data
-    if (photoGallery) { // Only load if the gallery element exists on the page
-       loadImageData();
-    }
+
+    // --- Initialize ---
+    loadImageGallery();
+
 });

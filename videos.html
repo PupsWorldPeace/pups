@@ -17,6 +17,7 @@
                 <li><a href="index.html" class="nav-button">Home</a></li>
                 <li><a href="images.html" class="nav-button">Images</a></li>
                 <li><a href="videos.html" class="nav-button active">Videos</a></li>
+                <li><a href="memes.html" class="nav-button">Memes</a></li> <!-- Added Memes Link -->
             </ul>
         </div>
         <!-- Removed Hamburger Menu -->
@@ -25,8 +26,8 @@
     
     <!-- Videos Gallery -->
     <div class="gallery" id="videos-gallery">
-        <!-- Loading message -->
-        <div id="loading-message" style="width: 100%; text-align: center; margin-top: 50px; font-size: 24px; color: white;">
+        <!-- Loading message (styles handled by CSS) -->
+        <div id="loading-message">
             Loading videos...
         </div>
         <!-- Video items will be dynamically added with JS -->
@@ -35,7 +36,7 @@
     <!-- Modal for viewing videos -->
     <div class="modal" id="video-modal">
         <div class="modal-content">
-            <video class="modal-media" id="modal-video" controls autoplay></video>
+            <video class="modal-media" id="modal-video" controls></video> <!-- Removed autoplay -->
             <button class="modal-download" id="download-video-mp4">Download MP4</button>
             <div class="modal-close">&times;</div>
             <div class="modal-nav modal-prev"><i class="fas fa-chevron-left"></i></div>
@@ -51,9 +52,10 @@
     <!-- Scripts -->
     <!-- Removed embedded script block -->
     <!-- Removed image-preloader.js reference -->
-    <script src="js/performance-boost.js"></script>
-    <script src="js/videos.js"></script> <!-- Ensure videos.js is loaded -->
-    <script src="js/stickers-rain.js"></script>
+    <!-- Re-enabling all scripts -->
+    <script src="js/performance-boost.js"></script> 
+    <script src="js/videos.js"></script> 
+    <script src="js/stickers-rain.js"></script> 
     <!-- Removed mobile-menu.js script -->
 </body>
 </html>

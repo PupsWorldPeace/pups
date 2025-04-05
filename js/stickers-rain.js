@@ -103,8 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
             sticker.src = randomStickerPath;
         }
         
-        // Add loading="lazy" for better performance with many stickers
+        // Add loading="lazy" and alt text for accessibility
         sticker.loading = "lazy";
+        sticker.alt = "Falling sticker"; // Added alt text
         
         // Random size - constrained for better performance
         const size = Math.random() * (config.maxSize - config.minSize) + config.minSize;

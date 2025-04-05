@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUPSfolio - Memes</title> <!-- Changed Title -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="memes-page"> <!-- Added class for potential specific styling -->
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-links">
+            <ul>
+                <li><a href="index.html" class="nav-button">Home</a></li>
+                <li><a href="images.html" class="nav-button">Images</a></li>
+                <li><a href="videos.html" class="nav-button">Videos</a></li>
+                <li><a href="memes.html" class="nav-button active">Memes</a></li> <!-- Added Memes Link -->
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Memes Gallery -->
+    <div class="gallery" id="memes-gallery"> <!-- Changed ID -->
+        <!-- Loading message (styles handled by CSS) -->
+        <div id="loading-message">
+            Loading memes... <!-- Changed Text -->
+        </div>
+        <!-- Meme items will be dynamically added with JS -->
+    </div>
+    
+    <!-- Modal for viewing memes (same structure as image modal) -->
+    <div class="modal" id="meme-modal"> <!-- Changed ID -->
+        <div class="modal-content">
+            <img class="modal-media" id="modal-meme-image" alt="Meme Image"> <!-- Changed ID -->
+            <div class="button-container">
+                <button class="modal-download" id="download-meme-webp">Download WEBP</button>
+                <button class="modal-download" id="download-meme-png">Download PNG</button>
+            </div>
+            <div class="modal-close">&times;</div>
+            <div class="modal-nav modal-prev"><i class="fas fa-chevron-left"></i></div>
+            <div class="modal-nav modal-next"><i class="fas fa-chevron-right"></i></div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <!-- Empty footer -->
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/performance-boost.js"></script> 
+    <script src="js/memes.js"></script> <!-- Link to new memes script -->
+    <script src="js/stickers-rain.js"></script> 
+</body>
+</html>

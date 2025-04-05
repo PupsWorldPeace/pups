@@ -23,28 +23,16 @@
         }
         
         html {
-            scrollbar-width: none;
+            /* scrollbar-width: none; */ /* Removed for Safari compatibility, relying on ::-webkit-scrollbar */
             -ms-overflow-style: none;
         }
         
-        /* Add MS Paint doodle elements back */
-        .doodle-sun {
-            position: fixed;
-            top: 140px;
-            right: 30px;
-            width: 100px;
-            height: 100px;
-            background-color: var(--accent-color);
-            border-radius: 50%;
-            border: 4px solid var(--border-color);
-            box-shadow: var(--ms-shadow);
-            z-index: -1;
-        }
+        /* Removed .doodle-sun inline style */
+        
     </style>
 </head>
 <body>
-    <!-- MS Paint Doodle Elements -->
-    <div class="doodle-sun"></div>
+    <!-- MS Paint Doodle Elements (Removed .doodle-sun div) -->
     
     <!-- Navigation -->
     <nav class="main-nav">
@@ -55,6 +43,7 @@
                 <li><a href="index.html" class="nav-button active">Home</a></li> 
                 <li><a href="images.html" class="nav-button">Images</a></li>
                 <li><a href="videos.html" class="nav-button">Videos</a></li>
+                <li><a href="memes.html" class="nav-button">Memes</a></li> <!-- Added Memes Link -->
             </ul>
         </div>
         <!-- Removed Hamburger Menu -->
