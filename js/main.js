@@ -104,15 +104,23 @@ document.addEventListener('DOMContentLoaded', function() {
             gridItem.className = 'grid-item';
 
             if (mediaItem.type === 'image') {
+                // console.log("Creating image grid item for:", mediaItem); // Log the whole item for debugging
                 const img = document.createElement('img');
+                const imageSrc = mediaItem.src; // Store src temporarily
+                // console.log(`Assigning data-src: ${imageSrc}`); // Log the src value for debugging
+                if (!imageSrc) {
+                    console.error("Error: mediaItem.src is undefined or empty for:", mediaItem);
+                    return null; // Don't create item if src is invalid
+                }
                 // Use data-src for IntersectionObserver lazy loading
-                img.dataset.src = mediaItem.src; 
+                img.dataset.src = imageSrc; 
                 // Optional: Add a placeholder src (e.g., tiny transparent gif) or rely on CSS sizing
                 // img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
                 img.alt = mediaItem.title || 'Slideshow Image'; 
                 // Remove native lazy loading; observer handles it
                 // img.loading = 'lazy'; 
-                img.onerror = () => console.error(`main.js: Failed to load image ${img.dataset.src}`); // Log data-src on error
+                // Refined error log to show if dataset.src was missing
+                img.onerror = () => console.error(`main.js: Failed to load image with data-src: ${img.dataset.src || 'undefined!'}`); 
                 gridItem.appendChild(img);
             } else if (mediaItem.type === 'video') {
                 const video = document.createElement('video');

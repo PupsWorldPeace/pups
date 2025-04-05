@@ -75,8 +75,8 @@ def main():
                  image_files.append(filepath) # Store for potential video thumbnails
                  media_list.append({
                      "type": "image",
-                     "src": filepath,
-                     "title": format_title(filename),
+                     "src": filepath, # Add src back
+                     "title": format_title(filename), # Add title back
                      "category": get_category(filename)
                  })
         print(f"  Found {len(image_files)} valid images.")
